@@ -94,26 +94,16 @@ export default function CharacterHud({ name, onRename, level, title, current, ne
 function Sigil({ level }) {
   return (
     <div className="relative grid size-24 place-items-center sm:size-28">
-      <motion.svg
-        viewBox="0 0 100 100"
-        className="absolute inset-0"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
-      >
+      <svg viewBox="0 0 100 100" className="absolute inset-0 animate-[spin_60s_linear_infinite]">
         <circle cx="50" cy="50" r="47" fill="none" stroke="rgba(201,162,74,0.35)" strokeWidth="0.6" strokeDasharray="1 3" />
         {Array.from({ length: 8 }, (_, i) => (
           <path key={i} d="M50 2v6" stroke="rgba(201,162,74,0.6)" strokeWidth="1" transform={`rotate(${i * 45} 50 50)`} />
         ))}
-      </motion.svg>
-      <motion.svg
-        viewBox="0 0 100 100"
-        className="absolute inset-2"
-        animate={{ rotate: -360 }}
-        transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
-      >
+      </svg>
+      <svg viewBox="0 0 100 100" className="absolute inset-2 animate-[spin_40s_linear_infinite_reverse]">
         <path d="M50 6 88 72H12Z" fill="none" stroke="rgba(224,34,61,0.35)" strokeWidth="0.8" />
         <path d="M50 94 12 28h76Z" fill="none" stroke="rgba(224,34,61,0.25)" strokeWidth="0.8" />
-      </motion.svg>
+      </svg>
       <div className="relative grid size-14 place-items-center rounded-full bg-black/70 shadow-[0_0_30px_rgba(195,20,47,0.35),inset_0_0_14px_rgba(201,162,74,0.25)] ring-1 ring-gold/40 sm:size-16">
         <div className="text-center leading-none">
           <span className="block font-display text-[8px] tracking-[0.3em] text-gold/70 uppercase">Lvl</span>

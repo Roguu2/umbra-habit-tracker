@@ -32,11 +32,10 @@ export default function SoundToggle() {
       {!muted && (
         <span className="flex h-3 items-end gap-[2px]" aria-hidden>
           {[0, 1, 2].map((i) => (
-            <motion.span
+            <span
               key={i}
-              className="w-[2px] bg-gold-bright shadow-[0_0_4px_#e2b45a]"
-              animate={{ height: ['30%', '100%', '45%', '80%', '30%'] }}
-              transition={{ duration: 1.2 + i * 0.25, repeat: Infinity, ease: 'easeInOut' }}
+              className="h-full w-[2px] origin-bottom bg-gold-bright shadow-[0_0_4px_#e2b45a]"
+              style={{ animation: `eq-bar ${1.2 + i * 0.25}s ease-in-out infinite` }}
             />
           ))}
         </span>
