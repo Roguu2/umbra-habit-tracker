@@ -1,0 +1,199 @@
+import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, Reorder, motion } from 'framer-motion'
+import QuestCard from '../components/QuestCard'
+import QuickAdd from '../components/QuickAdd'
+import { MiniRune, Panel } from '../components/ui'
+import { formatDay, partOfDay, shiftKey } from '../lib/game'
+import { dayStats, perfectDayStreak, questStreaks } from '../lib/stats'
+import { sfx } from '../lib/sfx'
+
+const PARTS = [
+  { id: 'morning', label: 'Rano' },
+  { id: 'afternoon', label: 'Popołudnie' },
+  { id: 'evening', label: 'Wieczór' },
+  { id: 'any', label: 'W ciągu dnia' },
+]
+
+function useClock() {
+  const [now, setNow] = useState(() => new Date().toTimeString().slice(0, 5))
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date().toTimeString().slice(0, 5)), 30000)
+    return () => clearInterval(id)
+  }, [])
+  return now
+}
+
+export default function TodayView({ game, onEdit, onOpenPlan }) {
+  const { state, today, actions } = game
+  const now = useClock()
+  const stats = dayStats(state, today)
+  const doneToday = state.history[today] ?? []
+  const items = [...stats.scheduled, ...stats.extra.filter((q) => !q.archivedAt)]
+
+  // "Następne": pierwsze niewykonane zadanie z godziną, które jeszcze nie minęło (z godzinnym zapasem)
+  const hourAgo = `${String(Math.max(0, Number(now.slice(0, 2)) - 1)).padStart(2, '0')}${now.slice(2)}`
+  const next = items.find((q) => q.time && q.time >= hourAgo && !doneToday.includes(q.id))
+
+  const groups = PARTS.map((p) => ({ ...p, items: items.filter((q) => partOfDay(q.time) === p.id) })).filter((g) => g.items.length)
+
+  const card = (q, reorder) => (
+    <QuestCard
+      key={q.id}
+      quest={q}
+      done={doneToday.includes(q.id)}
+      checkedSteps={state.steps[today]?.[q.id]}
+      streak={q.date ? 0 : questStreaks(state, q, today).current}
+      isNext={q === next}
+      index={items.indexOf(q)}
+      onToggle={actions.toggleQuest}
+      onToggleStep={actions.toggleStep}
+      onEdit={onEdit}
+      reorder={reorder}
+    />
+  )
+
+  return (
+    <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-12">
+      <section aria-labelledby="today-heading" className="space-y-6">
+        <div className="flex flex-wrap items-end gap-x-4 gap-y-1 sm:pl-1">
+          <h2 id="today-heading" className="font-display text-xl font-black tracking-[0.2em] text-stone-100 uppercase">
+            Plan na dziś
+          </h2>
+          <span className="mb-1.5 hidden h-px flex-1 bg-gradient-to-r from-blood/70 via-white/10 to-transparent sm:block" />
+          <span className="mb-0.5 font-lore text-sm text-white/40 italic">{formatDay(today)}</span>
+        </div>
+
+        <QuickAdd date={today} isToday onAdd={actions.saveQuest} onMore={onEdit} id="quick-today" suggest={items.length === 0} />
+
+        {groups.length === 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-10 text-center">
+            <p className="font-display text-sm tracking-[0.3em] text-gold/70 uppercase">Pusty dzień</p>
+            <p className="mx-auto mt-2 max-w-sm font-lore text-lg text-white/40 italic">
+              Wpisz powyżej, co chcesz dziś zrobić, albo wybierz jedną z podpowiedzi.
+            </p>
+          </motion.div>
+        )}
+
+        <AnimatePresence initial={false}>
+          {groups.map((g) => (
+            <motion.div key={g.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <p className="mb-3 flex items-center gap-3 pl-1 text-[10px] font-bold tracking-[0.35em] text-white/40 uppercase">
+                {g.label}
+                <span className="h-px flex-1 bg-white/[0.06]" />
+              </p>
+              {g.id === 'any' && g.items.length > 1 ? (
+                <ReorderableList items={g.items} onCommit={actions.reorderQuests}>
+                  {(q, reorder) => card(q, reorder)}
+                </ReorderableList>
+              ) : (
+                <ul className="space-y-3">
+                  <AnimatePresence mode="popLayout">{g.items.map((q) => card(q))}</AnimatePresence>
+                </ul>
+              )}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </section>
+
+      <aside className="space-y-8 lg:mt-12">
+        <Streak state={state} today={today} />
+        <Tomorrow state={state} today={today} onOpenPlan={onOpenPlan} />
+      </aside>
+    </div>
+  )
+}
+
+// Lista zadań bez godziny, którą można układać przeciąganiem (za uchwyt) albo strzałkami.
+function ReorderableList({ items, onCommit, children }) {
+  const [draft, setDraft] = useState(null)
+  const draftRef = useRef(null)
+  const list = draft ?? items
+
+  const update = (next) => {
+    draftRef.current = next
+    setDraft(next)
+  }
+
+  const reorder = {
+    onDrop: () => {
+      if (draftRef.current) {
+        sfx.tick()
+        onCommit(draftRef.current.map((q) => q.id))
+      }
+      draftRef.current = null
+      setDraft(null)
+    },
+    onMove: (id, dir) => {
+      const i = items.findIndex((q) => q.id === id)
+      const j = i + dir
+      if (j < 0 || j >= items.length) return
+      const next = [...items]
+      ;[next[i], next[j]] = [next[j], next[i]]
+      sfx.tick()
+      onCommit(next.map((q) => q.id))
+    },
+  }
+
+  return (
+    <Reorder.Group as="ul" axis="y" values={list} onReorder={update} className="space-y-3">
+      <AnimatePresence>{list.map((q) => children(q, reorder))}</AnimatePresence>
+    </Reorder.Group>
+  )
+}
+
+function Streak({ state, today }) {
+  const streak = perfectDayStreak(state, today)
+  return (
+    <Panel title="Passa" subtitle="pełne dni z rzędu" delay={0.15}>
+      <div className="flex items-center gap-5">
+        <motion.span
+          key={streak}
+          initial={{ scale: 1.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="text-gilded font-display text-5xl font-black tabular-nums"
+        >
+          {streak}
+        </motion.span>
+        <p className="text-[13px] leading-snug text-white/50">
+          {streak === 0
+            ? 'Wykonaj dziś cały plan, aby rozpalić passę.'
+            : `Nie przerywaj — każdy pełny dzień dokłada ogień do stosu.`}
+        </p>
+      </div>
+    </Panel>
+  )
+}
+
+function Tomorrow({ state, today, onOpenPlan }) {
+  const key = shiftKey(today, 1)
+  const d = dayStats(state, key)
+
+  return (
+    <Panel title="Jutro" subtitle={formatDay(key, { weekday: 'long', day: 'numeric', month: 'short' })} delay={0.25}>
+      {d.scheduled.length ? (
+        <ul className="space-y-2">
+          {d.scheduled.map((q) => (
+            <li key={q.id} className="flex items-center gap-3">
+              <span className="w-11 text-right font-display text-xs tabular-nums text-white/45">{q.time ?? '—'}</span>
+              <MiniRune rune={q.rune} tier={q.tier} size="size-6" />
+              <span className="truncate text-sm text-stone-200">{q.name}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="font-lore text-base text-white/40 italic">Nic jeszcze nie zaplanowano.</p>
+      )}
+      <motion.button
+        type="button"
+        onClick={() => {
+          sfx.page()
+          onOpenPlan(key)
+        }}
+        whileHover={{ x: 4 }}
+        className="mt-5 cursor-pointer text-[11px] tracking-[0.2em] text-gold/80 uppercase hover:text-gold-bright"
+      >
+        Zaplanuj jutro →
+      </motion.button>
+    </Panel>
+  )
+}
