@@ -150,5 +150,8 @@ export function useSync(state, setState) {
     setStatus('off')
   }, [setMeta])
 
-  return { code: meta?.code ?? null, status, syncNow: sync, createCode, joinCode, disconnect }
+  // aktualny kod bez czekania na ponowne renderowanie (np. zaraz po createCode)
+  const getCode = useCallback(() => metaRef.current?.code ?? null, [])
+
+  return { code: meta?.code ?? null, getCode, status, syncNow: sync, createCode, joinCode, disconnect }
 }

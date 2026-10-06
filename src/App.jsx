@@ -7,6 +7,8 @@ import LevelUpModal from './components/LevelUpModal'
 import AchievementToast from './components/AchievementToast'
 import SoundToggle from './components/SoundToggle'
 import SyncPanel, { SyncButton } from './components/SyncPanel'
+import RemindersPanel, { ReminderButton } from './components/RemindersPanel'
+import { usePush } from './hooks/usePush'
 import QuestEditor from './components/QuestEditor'
 import Onboarding from './components/Onboarding'
 import TodayView from './views/TodayView'
@@ -32,6 +34,8 @@ export default function App() {
     return code
   })
   const [syncOpen, setSyncOpen] = useState(Boolean(linkCode))
+  const push = usePush(game.sync)
+  const [remindersOpen, setRemindersOpen] = useState(false)
 
   const todayStats = dayStats(state, today)
 
@@ -119,7 +123,11 @@ export default function App() {
       </div>
 
       <SoundToggle />
-      <SyncButton status={game.sync.status} onClick={() => setSyncOpen(true)} />
+      <div className="fixed bottom-4 left-4 z-40 flex gap-2 sm:bottom-6 sm:left-6">
+        <SyncButton status={game.sync.status} onClick={() => setSyncOpen(true)} />
+        <ReminderButton enabled={push.prefs.enabled} onClick={() => setRemindersOpen(true)} />
+      </div>
+      <RemindersPanel open={remindersOpen} push={push} hasCode={Boolean(game.sync.code)} onClose={() => setRemindersOpen(false)} />
       <SyncPanel
         open={syncOpen}
         sync={game.sync}
@@ -127,7 +135,7 @@ export default function App() {
         onClose={() => setSyncOpen(false)}
       />
       <Onboarding
-        open={(!state.onboarded && !syncOpen) || tourOpen}
+        open={(!state.onboarded && !syncOpen && !remindersOpen) || tourOpen}
         defaultName={state.profile.name}
         onFinish={(name) => {
           actions.finishOnboarding(name)

@@ -1,13 +1,7 @@
-import { CATEGORIES, dayKey, parseKey, shiftKey } from './game'
+import { dayKey, shiftKey } from './game'
+import { isScheduledOn } from './schedule.js'
 
-// Zadanie "istnieje" w danym dniu, jeśli zostało utworzone wcześniej i nie zostało usunięte.
-const existsOn = (quest, key) => quest.createdAt <= key && (!quest.archivedAt || key < quest.archivedAt)
-
-export function isScheduledOn(quest, key) {
-  if (!existsOn(quest, key)) return false
-  if (quest.date) return quest.date === key
-  return quest.days.includes(parseKey(key).getDay())
-}
+export { isScheduledOn }
 
 export const activeQuests = (state) => state.quests.filter((q) => !q.archivedAt)
 
@@ -123,14 +117,4 @@ export function lifetimeStats(state, today = dayKey()) {
 
 export function weekPerfectDays(state, weekStartKey) {
   return keysBetween(weekStartKey, shiftKey(weekStartKey, 6)).filter((k) => dayStats(state, k).perfect).length
-}
-
-// ile razy wykonano zadania z każdej kategorii (automatycznie rozpoznanej z nazwy)
-export function categoryCounts(state) {
-  const byId = questIndex(state)
-  const result = Object.fromEntries(Object.keys(CATEGORIES).map((c) => [c, 0]))
-  for (const ids of Object.values(state.history)) {
-    for (const id of ids) if (byId[id]) result[byId[id].attr] = (result[byId[id].attr] ?? 0) + 1
-  }
-  return result
 }

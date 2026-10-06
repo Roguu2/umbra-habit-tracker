@@ -36,7 +36,7 @@ export function SyncButton({ status, onClick }) {
       transition={{ delay: 0.9, duration: 0.6 }}
       whileHover={{ scale: 1.06 }}
       whileTap={{ scale: 0.92 }}
-      className="hud-cut-sm fixed bottom-4 left-4 z-40 flex cursor-pointer items-center gap-2.5 bg-[#0b0a0d]/80 px-3.5 py-2.5 ring-1 ring-white/10 backdrop-blur-xl sm:bottom-6 sm:left-6"
+      className="hud-cut-sm flex cursor-pointer items-center gap-2.5 bg-[#0b0a0d]/80 px-3.5 py-2.5 ring-1 ring-white/10 backdrop-blur-xl"
     >
       <svg viewBox="0 0 16 16" className="size-4" aria-hidden fill="none" stroke={status === 'off' ? 'rgba(255,255,255,0.35)' : '#e2b45a'} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
         <path d="M13 6.5A5 5 0 0 0 3.6 5M3 9.5a5 5 0 0 0 9.4 1.5" />
@@ -226,7 +226,7 @@ function PanelBody({ sync, initialCode, onClose }) {
   )
 }
 
-function GhostButton({ children, type = 'button', ...props }) {
+export function GhostButton({ children, type = 'button', ...props }) {
   return (
     <button
       type={type}

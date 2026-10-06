@@ -114,5 +114,12 @@ export async function createFileStore(file) {
       save()
       return { modified: true, etag }
     },
+    async delete(key) {
+      delete data[key]
+      save()
+    },
+    async list() {
+      return { blobs: Object.entries(data).map(([key, e]) => ({ key, etag: e.etag })) }
+    },
   }
 }

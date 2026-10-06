@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Heatmap from '../components/charts/Heatmap'
 import DayDetail from '../components/DayDetail'
+import CharacterSheet from '../components/CharacterSheet'
 import { MiniRune, Panel, StatTile, pct } from '../components/ui'
 import { ACHIEVEMENTS } from '../lib/achievements'
-import { CATEGORIES, formatDay } from '../lib/game'
-import { categoryCounts, completionRate, perfectDayStreak } from '../lib/stats'
+import { formatDay } from '../lib/game'
+import { completionRate, perfectDayStreak } from '../lib/stats'
 
 export default function ProgressView({ game }) {
   const { state, today, life, achievementCtx, actions } = game
@@ -22,6 +23,8 @@ export default function ProgressView({ game }) {
         <StatTile label="Wykonane zadania" value={life.seals} hint="łącznie" delay={0.2} />
       </div>
 
+      <CharacterSheet state={state} today={today} />
+
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Panel title="Kalendarz" subtitle="kliknij dzień" accent="blood">
           <Heatmap state={state} today={today} selected={selected} onSelect={setSelected} />
@@ -31,52 +34,16 @@ export default function ProgressView({ game }) {
         </Panel>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
-        <Categories state={state} />
-        <Achievements state={state} ctx={achievementCtx} />
-      </div>
+      <Achievements state={state} ctx={achievementCtx} />
     </div>
-  )
-}
-
-// Kategorie rozpoznawane automatycznie z nazw zadań — bez żadnych ustawień.
-function Categories({ state }) {
-  const counts = categoryCounts(state)
-  const rows = Object.entries(CATEGORIES)
-    .map(([k, c]) => ({ k, label: c.label, n: counts[k] ?? 0 }))
-    .sort((a, b) => b.n - a.n)
-  const max = Math.max(1, ...rows.map((r) => r.n))
-
-  return (
-    <Panel title="Na co idzie twój wysiłek" delay={0.25}>
-      <ul className="space-y-4">
-        {rows.map((r, i) => (
-          <li key={r.k}>
-            <div className="flex items-baseline justify-between text-[11px]">
-              <span className="font-display font-bold tracking-[0.2em] text-stone-200 uppercase">{r.label}</span>
-              <span className="tabular-nums text-white/45">{r.n}×</span>
-            </div>
-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
-              <motion.div
-                className="h-full rounded-full bg-gradient-to-r from-blood-deep to-blood-bright"
-                initial={{ width: 0 }}
-                animate={{ width: `${(r.n / max) * 100}%` }}
-                transition={{ type: 'spring', stiffness: 60, damping: 16, delay: 0.35 + i * 0.06 }}
-              />
-            </div>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-5 text-[11px] leading-relaxed text-white/30">Kategorie dobierają się same na podstawie nazw zadań.</p>
-    </Panel>
   )
 }
 
 function Achievements({ state, ctx }) {
   const unlocked = ACHIEVEMENTS.filter((a) => state.achievements[a.id]).length
   return (
-    <Panel title="Osiągnięcia" subtitle={`${unlocked} z ${ACHIEVEMENTS.length}`} delay={0.3} accent="blood" className="lg:mt-10">
-      <ul className="grid gap-2 sm:grid-cols-2">
+    <Panel title="Osiągnięcia" subtitle={`${unlocked} z ${ACHIEVEMENTS.length}`} delay={0.3} accent="blood">
+      <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {ACHIEVEMENTS.map((a, i) => {
           const at = state.achievements[a.id]
           const [value, goal] = a.progress(ctx)
