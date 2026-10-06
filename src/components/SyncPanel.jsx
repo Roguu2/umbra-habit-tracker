@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import QrCode from './QrCode'
 import { formatCode, shareLink } from '../lib/sync'
 import { sfx } from '../lib/sfx'
 
@@ -127,12 +128,17 @@ function PanelBody({ sync, initialCode, onClose }) {
 
           {sync.code ? (
             <>
-              <div>
-                <p className="mb-2 text-[10px] tracking-[0.3em] text-white/40 uppercase">Twój kod</p>
-                <p className="font-display text-2xl font-bold tracking-[0.15em] text-gold-bright tabular-nums sm:text-3xl">{formatCode(sync.code)}</p>
-                <p className="mt-3 font-lore text-base text-white/50 italic">
-                  Wpisz ten kod na telefonie lub komputerze albo otwórz tam link — plany, postęp i EXP będą wszędzie te same.
-                </p>
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+                <div className="relative shrink-0 self-center p-1.5 ring-1 ring-gold/40 sm:self-auto">
+                  <QrCode text={shareLink(sync.code)} className="block size-44 sm:size-40" />
+                </div>
+                <div>
+                  <p className="mb-2 text-[10px] tracking-[0.3em] text-white/40 uppercase">Twój kod</p>
+                  <p className="font-display text-2xl font-bold tracking-[0.15em] text-gold-bright tabular-nums">{formatCode(sync.code)}</p>
+                  <p className="mt-3 font-lore text-base text-white/50 italic">
+                    Zeskanuj kod QR aparatem telefonu albo wpisz kod na drugim urządzeniu — plany, postęp i EXP będą wszędzie te same.
+                  </p>
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-2">
