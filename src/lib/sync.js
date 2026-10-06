@@ -43,6 +43,7 @@ export const syncApi = {
   create: (state) => call('POST', '', { state }),
   pull: (code) => call('GET', `?code=${code}`),
   push: (code, baseRev, state) => call('PUT', `?code=${code}`, { baseRev, state }),
+  remove: (code) => call('DELETE', `?code=${code}`),
 }
 
 // --- Scalanie: base = wspólny przodek, local = to urządzenie, remote = serwer --
@@ -97,6 +98,11 @@ export function mergeStates(base, local, remote) {
       const day = mergeMap(b, l, r)
       return Object.keys(day).length || l ? day : undefined
     }),
+    counts: mergeMap(base.counts, local.counts, remote.counts, (b, l, r) => {
+      const day = mergeMap(b, l, r)
+      return Object.keys(day).length || l ? day : undefined
+    }),
+    pauses: pick(base.pauses, local.pauses, remote.pauses) ?? [],
     achievements,
   }
 }

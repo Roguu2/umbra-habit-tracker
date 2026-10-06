@@ -5,8 +5,9 @@ import { MiniRune, Panel } from '../components/ui'
 import { ALL_DAYS, DAY_SHORT, dayKey, describeRepeat, formatDay, parseKey, shiftKey, weekStart } from '../lib/game'
 import { activeQuests, byTime, dayStats, keysBetween, questStreaks } from '../lib/stats'
 import { sfx } from '../lib/sfx'
+import { plural, t } from '../lib/i18n'
 
-export default function PlanView({ game, focusDay, onEdit }) {
+export default function PlanView({ game, focusDay, onEdit, onDetail }) {
   const { state, today, actions } = game
   const [selected, setSelected] = useState(focusDay ?? today)
   const [weekOffset, setWeekOffset] = useState(() => weekOffsetOf(focusDay ?? today, today))
@@ -29,23 +30,23 @@ export default function PlanView({ game, focusDay, onEdit }) {
   return (
     <div className="space-y-8">
       <Panel
-        title="Tydzień"
+        title={t('Tydzień', 'Week')}
         accent="blood"
         delay={0.05}
         action={
           <div className="flex items-center gap-1">
-            <NavBtn onClick={() => go(-1)} label="Poprzedni tydzień">
+            <NavBtn onClick={() => go(-1)} label={t('Poprzedni tydzień', 'Previous week')}>
               ‹
             </NavBtn>
             <button
               type="button"
               onClick={() => weekOffset !== 0 && go(-weekOffset)}
-              title="Wróć do bieżącego tygodnia"
+              title={t('Wróć do bieżącego tygodnia', 'Back to the current week')}
               className={`cursor-pointer px-3 font-display text-[11px] tracking-[0.2em] uppercase ${weekOffset === 0 ? 'text-gold-bright' : 'text-white/45 hover:text-white'}`}
             >
               {formatDay(weekFrom, { day: 'numeric', month: 'short' })} – {formatDay(shiftKey(weekFrom, 6), { day: 'numeric', month: 'short' })}
             </button>
-            <NavBtn onClick={() => go(1)} label="Następny tydzień">
+            <NavBtn onClick={() => go(1)} label={t('Następny tydzień', 'Next week')}>
               ›
             </NavBtn>
           </div>
@@ -80,8 +81,8 @@ export default function PlanView({ game, focusDay, onEdit }) {
         <SelectedDay state={state} today={today} dayKeyValue={selected} actions={actions} onEdit={onEdit} />
 
         <Panel
-          title="Stałe nawyki"
-          subtitle="powtarzają się same"
+          title={t('Stałe nawyki', 'Recurring habits')}
+          subtitle={t('powtarzają się same', 'they repeat on their own')}
           delay={0.2}
           className="lg:mt-10"
           action={
@@ -93,7 +94,7 @@ export default function PlanView({ game, focusDay, onEdit }) {
               }}
               className="cursor-pointer text-[11px] tracking-[0.2em] text-gold/80 uppercase hover:text-gold-bright"
             >
-              + Nowy
+              {t('+ Nowy', '+ New')}
             </button>
           }
         >
@@ -106,7 +107,7 @@ export default function PlanView({ game, focusDay, onEdit }) {
                     type="button"
                     onClick={() => {
                       sfx.tick()
-                      onEdit(q)
+                      onDetail(q)
                     }}
                     whileHover={{ x: 4 }}
                     className="flex w-full cursor-pointer items-center gap-3 px-2 py-2.5 text-left transition-colors hover:bg-white/[0.04]"
@@ -117,7 +118,7 @@ export default function PlanView({ game, focusDay, onEdit }) {
                       <span className="block truncate text-sm text-stone-100">{q.name}</span>
                       <span className="block text-[10px] tracking-[0.15em] text-white/40 uppercase">
                         {describeRepeat(q)}
-                        {q.steps.length > 0 && ` · ${q.steps.length} kroków`}
+                        {q.steps.length > 0 && ` · ${q.steps.length} ${plural(q.steps.length, ['krok', 'kroki', 'kroków'], ['step', 'steps'])}`}
                       </span>
                     </span>
                     {streak > 0 && <span className="shrink-0 text-xs text-white/50">🔥 {streak}</span>}
@@ -125,9 +126,9 @@ export default function PlanView({ game, focusDay, onEdit }) {
                 </li>
               )
             })}
-            {habits.length === 0 && <li className="font-lore text-white/40 italic">Brak stałych nawyków — dodaj pierwszy.</li>}
+            {habits.length === 0 && <li className="font-lore text-white/40 italic">{t('Brak stałych nawyków — dodaj pierwszy.', 'No recurring habits yet — add your first.')}</li>}
           </ul>
-          <p className="mt-4 text-[11px] text-white/30">Kliknij nawyk, aby zmienić godzinę, dni albo kroki.</p>
+          <p className="mt-4 text-[11px] text-white/30">{t('Kliknij nawyk, aby zobaczyć jego historię lub go edytować.', 'Click a habit to see its history or edit it.')}</p>
         </Panel>
       </div>
     </div>
@@ -179,13 +180,13 @@ function DayColumn({ d, today, selected, onSelect }) {
     >
       <div className="flex items-baseline justify-between">
         <span className={`font-display text-[11px] font-bold tracking-[0.25em] uppercase ${isToday ? 'text-blood-bright' : 'text-white/50'}`}>
-          {isToday ? 'Dziś' : DAY_SHORT[parseKey(d.key).getDay()]}
+          {isToday ? t('Dziś', 'Today') : DAY_SHORT[parseKey(d.key).getDay()]}
         </span>
         <span className="font-display text-lg font-bold tabular-nums text-stone-200">{parseKey(d.key).getDate()}</span>
       </div>
 
       <div className="mt-3 flex flex-1 flex-col gap-1.5">
-        {d.scheduled.length === 0 && <span className="font-lore text-sm text-white/30 italic">wolne</span>}
+        {d.scheduled.length === 0 && <span className="font-lore text-sm text-white/30 italic">{t('wolne', 'free')}</span>}
         {d.scheduled.map((q) => {
           const lit = done.has(q.id)
           return (
@@ -202,7 +203,7 @@ function DayColumn({ d, today, selected, onSelect }) {
 
       {(past || isToday) && d.scheduled.length > 0 && (
         <p className="mt-3 text-[10px] tracking-[0.15em] text-white/35 uppercase tabular-nums">
-          {d.scheduledDone.length}/{d.scheduled.length} wykonane
+          {d.scheduledDone.length}/{d.scheduled.length} {t('wykonane', 'done')}
         </p>
       )}
     </motion.button>
@@ -215,7 +216,7 @@ function SelectedDay({ state, today, dayKeyValue, actions, onEdit }) {
   const past = dayKeyValue < today
 
   return (
-    <Panel title={dayKeyValue === today ? 'Dziś' : formatDay(dayKeyValue, { weekday: 'long' })} subtitle={formatDay(dayKeyValue, { day: 'numeric', month: 'long' })} delay={0.12}>
+    <Panel title={dayKeyValue === today ? t('Dziś', 'Today') : formatDay(dayKeyValue, { weekday: 'long' })} subtitle={formatDay(dayKeyValue, { day: 'numeric', month: 'long' })} delay={0.12}>
       <AnimatePresence mode="wait">
         <motion.div
           key={dayKeyValue}
@@ -242,11 +243,11 @@ function SelectedDay({ state, today, dayKeyValue, actions, onEdit }) {
                   <span className={`min-w-0 flex-1 truncate text-sm ${past && !done.has(q.id) ? 'text-white/35 line-through' : 'text-stone-100'}`}>
                     {q.name}
                   </span>
-                  <span className="shrink-0 text-[10px] tracking-[0.15em] text-white/35 uppercase">{q.date ? 'jednorazowo' : describeRepeat(q)}</span>
+                  <span className="shrink-0 text-[10px] tracking-[0.15em] text-white/35 uppercase">{q.date ? t('jednorazowo', 'one-time') : describeRepeat(q)}</span>
                 </motion.button>
               </li>
             ))}
-            {s.scheduled.length === 0 && <li className="px-2 font-lore text-base text-white/40 italic">Nic nie zaplanowano.</li>}
+            {s.scheduled.length === 0 && <li className="px-2 font-lore text-base text-white/40 italic">{t('Nic nie zaplanowano.', 'Nothing planned.')}</li>}
           </ul>
 
           {!past && (

@@ -7,6 +7,7 @@ import { MiniRune, Panel, StatTile, pct } from '../components/ui'
 import { ACHIEVEMENTS } from '../lib/achievements'
 import { formatDay } from '../lib/game'
 import { completionRate, perfectDayStreak } from '../lib/stats'
+import { t } from '../lib/i18n'
 
 export default function ProgressView({ game }) {
   const { state, today, life, achievementCtx, actions } = game
@@ -17,19 +18,19 @@ export default function ProgressView({ game }) {
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <StatTile label="Skuteczność · 7 dni" value={pct(rate7)} hint="wykonane z zaplanowanych" delay={0.05} />
-        <StatTile label="Passa" value={streak} hint="pełne dni z rzędu" delay={0.1} />
-        <StatTile label="Pełne dni" value={life.perfectDays} hint="łącznie" delay={0.15} />
-        <StatTile label="Wykonane zadania" value={life.seals} hint="łącznie" delay={0.2} />
+        <StatTile label={t('Skuteczność · 7 dni', 'Completion rate · 7 days')} value={pct(rate7)} hint={t('wykonane z zaplanowanych', 'done of planned')} delay={0.05} />
+        <StatTile label={t('Passa', 'Streak')} value={streak} hint={t('pełne dni z rzędu', 'full days in a row')} delay={0.1} />
+        <StatTile label={t('Pełne dni', 'Full days')} value={life.perfectDays} hint={t('łącznie', 'all time')} delay={0.15} />
+        <StatTile label={t('Wykonane zadania', 'Quests completed')} value={life.seals} hint={t('łącznie', 'all time')} delay={0.2} />
       </div>
 
       <CharacterSheet state={state} today={today} />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <Panel title="Kalendarz" subtitle="kliknij dzień" accent="blood">
+        <Panel title={t('Kalendarz', 'Calendar')} subtitle={t('kliknij dzień', 'click a day')} accent="blood">
           <Heatmap state={state} today={today} selected={selected} onSelect={setSelected} />
         </Panel>
-        <Panel title="Wybrany dzień" delay={0.2} className="lg:mt-10">
+        <Panel title={t('Wybrany dzień', 'Selected day')} delay={0.2} className="lg:mt-10">
           <DayDetail state={state} today={today} dayKeyValue={selected} actions={actions} />
         </Panel>
       </div>
@@ -42,7 +43,7 @@ export default function ProgressView({ game }) {
 function Achievements({ state, ctx }) {
   const unlocked = ACHIEVEMENTS.filter((a) => state.achievements[a.id]).length
   return (
-    <Panel title="Osiągnięcia" subtitle={`${unlocked} z ${ACHIEVEMENTS.length}`} delay={0.3} accent="blood">
+    <Panel title={t('Osiągnięcia', 'Achievements')} subtitle={`${unlocked} ${t('z', 'of')} ${ACHIEVEMENTS.length}`} delay={0.3} accent="blood">
       <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {ACHIEVEMENTS.map((a, i) => {
           const at = state.achievements[a.id]

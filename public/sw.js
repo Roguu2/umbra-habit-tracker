@@ -1,7 +1,7 @@
 // Service worker: działanie offline i przypomnienia push.
 // Rejestrowany z ?cache=0 podczas `npm run dev` — wtedy nic nie cache'uje, żeby nie psuć odświeżania Vite.
 
-const CACHE = 'umbra-v1'
+const CACHE = 'umbra-v2'
 const CACHING = new URL(self.location).searchParams.get('cache') !== '0'
 const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/badge-96.png']
 
@@ -55,16 +55,7 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // fonty Google: z pamięci, w tle odświeżane
-  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
-    event.respondWith(
-      caches.match(req).then((hit) => {
-        const fresh = fetchAndCache(req).catch(() => hit)
-        return hit ?? fresh
-      }),
-    )
-  }
-  // /api/* i reszta — zwykła sieć
+  // /api/* i reszta — zwykła sieć (czcionki są w /assets/, więc trafiają do pamięci wyżej)
 })
 
 async function fetchAndCache(req) {

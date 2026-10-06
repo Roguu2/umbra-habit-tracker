@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion'
 import { RUNES } from '../lib/game'
 import { sfx } from '../lib/sfx'
+import { t } from '../lib/i18n'
 
 export const TABS = [
-  { id: 'today', label: 'Dziś', rune: 0 },
-  { id: 'plan', label: 'Plan', rune: 2 },
-  { id: 'progress', label: 'Postępy', rune: 8 },
+  { id: 'today', label: t('Dziś', 'Today'), rune: 0 },
+  { id: 'plan', label: t('Plan', 'Plan'), rune: 2 },
+  { id: 'progress', label: t('Postępy', 'Progress'), rune: 8 },
 ]
 
 export default function NavTabs({ active, onChange }) {
@@ -28,7 +29,7 @@ export default function NavTabs({ active, onChange }) {
       transition={{ duration: 0.7, delay: 0.15 }}
       className="mt-6 flex justify-center sm:justify-start sm:pl-[136px]"
     >
-      <div role="tablist" aria-label="Widoki" onKeyDown={onKeyDown} className="relative flex w-full gap-1 sm:w-auto">
+      <div role="tablist" aria-label={t('Widoki', 'Views')} onKeyDown={onKeyDown} className="relative flex w-full gap-1 sm:w-auto">
         {TABS.map((tab) => {
           const on = tab.id === active
           return (

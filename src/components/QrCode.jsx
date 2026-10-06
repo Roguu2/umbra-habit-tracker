@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import qrcode from 'qrcode-generator'
+import { t } from '../lib/i18n'
 
 // Kod QR jako SVG: ciemne moduły na jasnym tle (odwrócone kolory część aparatów odczytuje źle)
 // z marginesem 4 modułów, którego wymaga specyfikacja.
@@ -19,7 +20,7 @@ export default function QrCode({ text, className = '' }) {
   }, [text])
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className={className} role="img" aria-label="Kod QR do połączenia urządzenia" shapeRendering="crispEdges">
+    <svg viewBox={`0 0 ${size} ${size}`} className={className} role="img" aria-label={t('Kod QR do połączenia urządzenia', 'QR code to connect a device')} shapeRendering="crispEdges">
       <rect width={size} height={size} fill="#f3ead6" />
       <path d={path} fill="#0b0a0d" />
     </svg>

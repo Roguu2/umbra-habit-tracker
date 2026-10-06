@@ -40,6 +40,14 @@ function devApi() {
   }
 }
 
+// pełny adres strony w znacznikach podglądu linku — Netlify podaje go przy budowaniu w zmiennej URL
+function siteUrl() {
+  return {
+    name: 'site-url',
+    transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', (process.env.URL ?? '').replace(/\/$/, '')),
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), tailwindcss(), devApi()],
+  plugins: [react(), tailwindcss(), devApi(), siteUrl()],
 })

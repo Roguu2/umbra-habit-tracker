@@ -3,8 +3,14 @@ import { MiniRune } from './ui'
 import { formatDay, shiftKey } from '../lib/game'
 import { dayStats } from '../lib/stats'
 import { sfx } from '../lib/sfx'
+import { t } from '../lib/i18n'
 
-const STATUS = { done: 'wykonane', missed: 'pominięte', planned: 'do zrobienia', extra: 'dodatkowo' }
+const STATUS = {
+  done: t('wykonane', 'done'),
+  missed: t('pominięte', 'missed'),
+  planned: t('do zrobienia', 'to do'),
+  extra: t('dodatkowo', 'extra'),
+}
 
 // Szczegóły wybranego dnia. Dziś i wczoraj można jeszcze uzupełnić; starsze dni są tylko do odczytu.
 export default function DayDetail({ state, today, dayKeyValue, actions }) {
@@ -22,6 +28,7 @@ export default function DayDetail({ state, today, dayKeyValue, actions }) {
 
   const rows = [
     ...s.scheduled.map((q) => ({ q, kind: done.has(q.id) ? 'done' : dayKeyValue >= today ? 'planned' : 'missed' })),
+    ...s.flexDone.map((q) => ({ q, kind: 'extra' })),
     ...s.extra.map((q) => ({ q, kind: 'extra' })),
   ]
 
@@ -40,13 +47,14 @@ export default function DayDetail({ state, today, dayKeyValue, actions }) {
             <span className="text-stone-200 tabular-nums">
               {s.scheduledDone.length}/{s.scheduled.length}
             </span>{' '}
-            wykonane · <span className="text-stone-200 tabular-nums">{s.exp}</span> EXP
-            {s.perfect && <span className="text-gold-bright"> · pełny dzień</span>}
+            {t('wykonane', 'done')} · <span className="text-stone-200 tabular-nums">{s.exp}</span> EXP
+            {s.perfect && <span className="text-gold-bright">{t(' · pełny dzień', ' · full day')}</span>}
           </p>
         )}
 
         <ul className="mt-5 space-y-1">
-          {rows.length === 0 && <li className="font-lore text-base text-white/35 italic">Wolny dzień.</li>}
+          {s.paused && <li className="pb-1 text-[11px] tracking-[0.15em] text-gold/80 uppercase">{t('Urlop — dzień się nie liczy', "Vacation — this day doesn't count")}</li>}
+          {rows.length === 0 && <li className="font-lore text-base text-white/35 italic">{t('Wolny dzień.', 'A free day.')}</li>}
           {rows.map(({ q, kind }) => (
             <li key={q.id}>
               <button
@@ -65,7 +73,7 @@ export default function DayDetail({ state, today, dayKeyValue, actions }) {
           ))}
         </ul>
         {editable && dayKeyValue !== today && rows.length > 0 && (
-          <p className="mt-3 text-[11px] text-white/35">Zapomniałeś odhaczyć? Kliknij zadanie, żeby uzupełnić wczoraj.</p>
+          <p className="mt-3 text-[11px] text-white/35">{t('Zapomniałeś odhaczyć? Kliknij zadanie, żeby uzupełnić wczoraj.', 'Forgot to check it off? Click a quest to fill in yesterday.')}</p>
         )}
       </motion.div>
     </AnimatePresence>

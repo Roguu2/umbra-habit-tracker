@@ -1,5 +1,7 @@
 // --- Aplikacja (PWA) i przypomnienia push -------------------------------------
 
+import { lang } from './i18n.js'
+
 const PREFS_KEY = 'umbra-habit-tracker:push'
 export const DEFAULT_PREFS = { enabled: false, lead: 15, evening: '20:00' }
 
@@ -87,6 +89,7 @@ export const pushApi = {
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       lead: prefs.lead,
       evening: prefs.evening,
+      lang: lang(),
     }),
   remove: (endpoint) => call('DELETE', '', { endpoint }),
   test: (endpoint) => call('POST', '?action=test', { endpoint }),

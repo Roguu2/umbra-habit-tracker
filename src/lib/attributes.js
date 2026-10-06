@@ -3,6 +3,7 @@
 
 import { CATEGORIES, shiftKey } from './game'
 import { isScheduledOn } from './schedule.js'
+import { t } from './i18n.js'
 
 // kolejność osi na radarze (od góry, zgodnie z ruchem wskazówek zegara)
 export const ATTR_ORDER = ['str', 'end', 'vit', 'mind', 'life']
@@ -59,24 +60,63 @@ export function attributeStats(state, today) {
 // --- Klasa postaci: wynika z proporcji atrybutów --------------------------------
 
 const SOLO = {
-  str: { name: 'Berserker', desc: 'Siła płynie w twoich żyłach. Ciężary uginają się przed twoją wolą.' },
-  end: { name: 'Łowca Cieni', desc: 'Niezmordowany. Pokonujesz kolejne mile, gdy inni już dawno padli.' },
-  vit: { name: 'Druid Krwi', desc: 'Dbasz o ciało jak o świątynię — posiłki, sen i woda to twoje rytuały.' },
-  mind: { name: 'Mnich Popiołu', desc: 'Umysł ostry jak klinga. Księgi i cisza to twój oręż.' },
-  life: { name: 'Strażnik Ogniska', desc: 'Utrzymujesz porządek codzienności. Małe czyny budują wielkie rzeczy.' },
+  str: {
+    name: 'Berserker',
+    desc: t('Siła płynie w twoich żyłach. Ciężary uginają się przed twoją wolą.', 'Strength flows through your veins. Iron bends to your will.'),
+  },
+  end: {
+    name: t('Łowca Cieni', 'Shadow Hunter'),
+    desc: t('Niezmordowany. Pokonujesz kolejne mile, gdy inni już dawno padli.', 'Tireless. You cover mile after mile long after others have fallen.'),
+  },
+  vit: {
+    name: t('Druid Krwi', 'Blood Druid'),
+    desc: t('Dbasz o ciało jak o świątynię — posiłki, sen i woda to twoje rytuały.', 'You tend your body like a temple — food, sleep and water are your rituals.'),
+  },
+  mind: {
+    name: t('Mnich Popiołu', 'Ash Monk'),
+    desc: t('Umysł ostry jak klinga. Księgi i cisza to twój oręż.', 'A mind sharp as a blade. Books and silence are your weapons.'),
+  },
+  life: {
+    name: t('Strażnik Ogniska', 'Hearthkeeper'),
+    desc: t('Utrzymujesz porządek codzienności. Małe czyny budują wielkie rzeczy.', 'You keep order in daily life. Small deeds build great things.'),
+  },
 }
 
 const PAIRS = {
-  'end+str': { name: 'Wojownik Burzy', desc: 'Siła i wytrzymałość w jednym ciele. Pole bitwy należy do ciebie.' },
-  'mind+str': { name: 'Rycerz Run', desc: 'Miecz w dłoni, wiedza w głowie. Rzadkie i groźne połączenie.' },
-  'str+vit': { name: 'Gladiator', desc: 'Trenujesz ciężko i karmisz ciało jak należy. Arena czeka.' },
-  'end+mind': { name: 'Wędrowny Asceta', desc: 'Długie drogi i długie myśli. Spokój w ruchu.' },
-  'end+vit': { name: 'Zwiadowca', desc: 'Zawsze w drodze, zawsze w formie. Ciało gotowe na każdy szlak.' },
-  'mind+vit': { name: 'Alchemik', desc: 'Wiedza i zdrowie splecione w jedno. Warzysz eliksir lepszego życia.' },
+  'end+str': {
+    name: t('Wojownik Burzy', 'Stormwarrior'),
+    desc: t('Siła i wytrzymałość w jednym ciele. Pole bitwy należy do ciebie.', 'Strength and stamina in one body. The battlefield is yours.'),
+  },
+  'mind+str': {
+    name: t('Rycerz Run', 'Runeknight'),
+    desc: t('Miecz w dłoni, wiedza w głowie. Rzadkie i groźne połączenie.', 'Sword in hand, knowledge in mind. A rare and dangerous blend.'),
+  },
+  'str+vit': {
+    name: 'Gladiator',
+    desc: t('Trenujesz ciężko i karmisz ciało jak należy. Arena czeka.', 'You train hard and feed your body right. The arena awaits.'),
+  },
+  'end+mind': {
+    name: t('Wędrowny Asceta', 'Wandering Ascetic'),
+    desc: t('Długie drogi i długie myśli. Spokój w ruchu.', 'Long roads and long thoughts. Stillness in motion.'),
+  },
+  'end+vit': {
+    name: t('Zwiadowca', 'Ranger'),
+    desc: t('Zawsze w drodze, zawsze w formie. Ciało gotowe na każdy szlak.', 'Always on the move, always in shape. A body ready for any trail.'),
+  },
+  'mind+vit': {
+    name: t('Alchemik', 'Alchemist'),
+    desc: t('Wiedza i zdrowie splecione w jedno. Warzysz eliksir lepszego życia.', 'Knowledge and health woven together. You brew the elixir of a better life.'),
+  },
 }
 
-const BALANCED = { name: 'Paladyn Równowagi', desc: 'Żaden atrybut nie dominuje — rozwijasz się na wszystkich frontach.' }
-const UNFORMED = { name: 'Bezimienny', desc: 'Twoja ścieżka dopiero się kształtuje. Wypalaj pieczęcie, a klasa sama się objawi.' }
+const BALANCED = {
+  name: t('Paladyn Równowagi', 'Paladin of Balance'),
+  desc: t('Żaden atrybut nie dominuje — rozwijasz się na wszystkich frontach.', 'No attribute dominates — you grow on every front.'),
+}
+const UNFORMED = {
+  name: t('Bezimienny', 'The Nameless'),
+  desc: t('Twoja ścieżka dopiero się kształtuje. Wypalaj pieczęcie, a klasa sama się objawi.', 'Your path is still taking shape. Burn the seals and your class will reveal itself.'),
+}
 
 export function characterClass(attrs) {
   const total = attrs.reduce((s, a) => s + a.exp, 0)

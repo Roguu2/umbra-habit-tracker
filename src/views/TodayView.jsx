@@ -4,14 +4,15 @@ import QuestCard from '../components/QuestCard'
 import QuickAdd from '../components/QuickAdd'
 import { MiniRune, Panel } from '../components/ui'
 import { formatDay, partOfDay, shiftKey } from '../lib/game'
-import { dayStats, perfectDayStreak, questStreaks } from '../lib/stats'
+import { byTime, dayStats, perfectDayStreak, questStreaks, weekCount } from '../lib/stats'
 import { sfx } from '../lib/sfx'
+import { t } from '../lib/i18n'
 
 const PARTS = [
-  { id: 'morning', label: 'Rano' },
-  { id: 'afternoon', label: 'Popołudnie' },
-  { id: 'evening', label: 'Wieczór' },
-  { id: 'any', label: 'W ciągu dnia' },
+  { id: 'morning', label: t('Rano', 'Morning') },
+  { id: 'afternoon', label: t('Popołudnie', 'Afternoon') },
+  { id: 'evening', label: t('Wieczór', 'Evening') },
+  { id: 'any', label: t('W ciągu dnia', 'Anytime') },
 ]
 
 function useClock() {
@@ -28,7 +29,9 @@ export default function TodayView({ game, onEdit, onOpenPlan }) {
   const now = useClock()
   const stats = dayStats(state, today)
   const doneToday = state.history[today] ?? []
-  const items = [...stats.scheduled, ...stats.extra.filter((q) => !q.archivedAt)]
+  // nawyki "X razy w tygodniu" widać, dopóki cel tygodnia nie jest osiągnięty (albo gdy zrobione dziś)
+  const flexible = stats.flexible.filter((q) => doneToday.includes(q.id) || weekCount(state, q, today) < q.perWeek)
+  const items = [...stats.scheduled, ...flexible, ...stats.extra.filter((q) => !q.archivedAt)].sort(byTime)
 
   // "Następne": pierwsze niewykonane zadanie z godziną, które jeszcze nie minęło (z godzinnym zapasem)
   const hourAgo = `${String(Math.max(0, Number(now.slice(0, 2)) - 1)).padStart(2, '0')}${now.slice(2)}`
@@ -36,40 +39,71 @@ export default function TodayView({ game, onEdit, onOpenPlan }) {
 
   const groups = PARTS.map((p) => ({ ...p, items: items.filter((q) => partOfDay(q.time) === p.id) })).filter((g) => g.items.length)
 
-  const card = (q, reorder) => (
-    <QuestCard
-      key={q.id}
-      quest={q}
-      done={doneToday.includes(q.id)}
-      checkedSteps={state.steps[today]?.[q.id]}
-      streak={q.date ? 0 : questStreaks(state, q, today).current}
-      isNext={q === next}
-      index={items.indexOf(q)}
-      onToggle={actions.toggleQuest}
-      onToggleStep={actions.toggleStep}
-      onEdit={onEdit}
-      reorder={reorder}
-    />
-  )
+  const card = (q, reorder) => {
+    const streak = q.date ? { current: 0 } : questStreaks(state, q, today)
+    return (
+      <QuestCard
+        key={q.id}
+        quest={q}
+        done={doneToday.includes(q.id)}
+        checkedSteps={state.steps[today]?.[q.id]}
+        streak={streak.current}
+        streakUnit={streak.unit}
+        count={state.counts?.[today]?.[q.id] ?? 0}
+        onAddCount={actions.addCount}
+        weekDone={q.perWeek ? weekCount(state, q, today) : null}
+        isNext={q === next}
+        index={items.indexOf(q)}
+        onToggle={actions.toggleQuest}
+        onToggleStep={actions.toggleStep}
+        onEdit={onEdit}
+        reorder={reorder}
+      />
+    )
+  }
 
   return (
     <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-12">
       <section aria-labelledby="today-heading" className="space-y-6">
         <div className="flex flex-wrap items-end gap-x-4 gap-y-1 sm:pl-1">
           <h2 id="today-heading" className="font-display text-xl font-black tracking-[0.2em] text-stone-100 uppercase">
-            Plan na dziś
+            {t('Plan na dziś', "Today's Plan")}
           </h2>
           <span className="mb-1.5 hidden h-px flex-1 bg-gradient-to-r from-blood/70 via-white/10 to-transparent sm:block" />
           <span className="mb-0.5 font-lore text-sm text-white/40 italic">{formatDay(today)}</span>
         </div>
 
+        {stats.paused && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-wrap items-center justify-between gap-3 border-l-2 border-gold/60 bg-gold/[0.05] px-4 py-3"
+          >
+            <p className="text-[13px] text-white/70">
+              <span className="font-display font-bold tracking-[0.15em] text-gold-bright uppercase">{t('Tryb urlopu', 'Vacation mode')}</span>
+              {' — '}
+              {t('passa i serie są bezpieczne. Możesz odpocząć.', 'your streaks are safe. Take your rest.')}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                sfx.page()
+                actions.setVacation(false)
+              }}
+              className="cursor-pointer text-[11px] tracking-[0.2em] text-gold/80 uppercase hover:text-gold-bright"
+            >
+              {t('Wracam', "I'm back")}
+            </button>
+          </motion.div>
+        )}
+
         <QuickAdd date={today} isToday onAdd={actions.saveQuest} onMore={onEdit} id="quick-today" suggest={items.length === 0} />
 
         {groups.length === 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-10 text-center">
-            <p className="font-display text-sm tracking-[0.3em] text-gold/70 uppercase">Pusty dzień</p>
+            <p className="font-display text-sm tracking-[0.3em] text-gold/70 uppercase">{t('Pusty dzień', 'Empty day')}</p>
             <p className="mx-auto mt-2 max-w-sm font-lore text-lg text-white/40 italic">
-              Wpisz powyżej, co chcesz dziś zrobić, albo wybierz jedną z podpowiedzi.
+              {t('Wpisz powyżej, co chcesz dziś zrobić, albo wybierz jedną z podpowiedzi.', 'Write above what you want to do today, or pick one of the suggestions.')}
             </p>
           </motion.div>
         )}
@@ -144,7 +178,7 @@ function ReorderableList({ items, onCommit, children }) {
 function Streak({ state, today }) {
   const streak = perfectDayStreak(state, today)
   return (
-    <Panel title="Passa" subtitle="pełne dni z rzędu" delay={0.15}>
+    <Panel title={t('Passa', 'Streak')} subtitle={t('pełne dni z rzędu', 'full days in a row')} delay={0.15}>
       <div className="flex items-center gap-5">
         <motion.span
           key={streak}
@@ -156,8 +190,8 @@ function Streak({ state, today }) {
         </motion.span>
         <p className="text-[13px] leading-snug text-white/50">
           {streak === 0
-            ? 'Wykonaj dziś cały plan, aby rozpalić passę.'
-            : `Nie przerywaj — każdy pełny dzień dokłada ogień do stosu.`}
+            ? t('Wykonaj dziś cały plan, aby rozpalić passę.', 'Complete the whole plan today to kindle a streak.')
+            : t(`Nie przerywaj — każdy pełny dzień dokłada ogień do stosu.`, `Don't break it — every full day adds fire to the pyre.`)}
         </p>
       </div>
     </Panel>
@@ -169,7 +203,7 @@ function Tomorrow({ state, today, onOpenPlan }) {
   const d = dayStats(state, key)
 
   return (
-    <Panel title="Jutro" subtitle={formatDay(key, { weekday: 'long', day: 'numeric', month: 'short' })} delay={0.25}>
+    <Panel title={t('Jutro', 'Tomorrow')} subtitle={formatDay(key, { weekday: 'long', day: 'numeric', month: 'short' })} delay={0.25}>
       {d.scheduled.length ? (
         <ul className="space-y-2">
           {d.scheduled.map((q) => (
@@ -181,7 +215,7 @@ function Tomorrow({ state, today, onOpenPlan }) {
           ))}
         </ul>
       ) : (
-        <p className="font-lore text-base text-white/40 italic">Nic jeszcze nie zaplanowano.</p>
+        <p className="font-lore text-base text-white/40 italic">{t('Nic jeszcze nie zaplanowano.', 'Nothing planned yet.')}</p>
       )}
       <motion.button
         type="button"
@@ -192,7 +226,7 @@ function Tomorrow({ state, today, onOpenPlan }) {
         whileHover={{ x: 4 }}
         className="mt-5 cursor-pointer text-[11px] tracking-[0.2em] text-gold/80 uppercase hover:text-gold-bright"
       >
-        Zaplanuj jutro →
+        {t('Zaplanuj jutro →', 'Plan tomorrow →')}
       </motion.button>
     </Panel>
   )

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import ExpBar from './ExpBar'
 import { sfx } from '../lib/sfx'
+import { t } from '../lib/i18n'
 
 // imię postaci — kliknij, wpisz, Enter
 function HeroName({ name, onRename }) {
@@ -10,7 +11,7 @@ function HeroName({ name, onRename }) {
 
   const commit = () => {
     setEditing(false)
-    const next = draft.trim() || 'Wędrowiec'
+    const next = draft.trim() || t('Wędrowiec', 'Wanderer')
     setDraft(next)
     if (next !== name) {
       sfx.quill()
@@ -27,7 +28,7 @@ function HeroName({ name, onRename }) {
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-        aria-label="Imię postaci"
+        aria-label={t('Imię postaci', 'Character name')}
         className="w-full max-w-xs border-b border-gold/60 bg-transparent font-display text-[11px] tracking-[0.3em] text-stone-100 uppercase outline-none"
       />
     )
@@ -39,7 +40,7 @@ function HeroName({ name, onRename }) {
         setDraft(name)
         setEditing(true)
       }}
-      title="Kliknij, aby zmienić imię"
+      title={t('Kliknij, aby zmienić imię', 'Click to change name')}
       className="group flex cursor-pointer items-center gap-2 font-display text-[10px] tracking-[0.3em] text-white/40 uppercase hover:text-white/70 sm:tracking-[0.5em]"
     >
       {name}
@@ -151,7 +152,7 @@ function DailyRing({ ratio, doneCount, questCount }) {
         </div>
       </div>
       <p className="font-display text-[10px] tracking-[0.35em] text-white/40 uppercase lg:text-center">
-        {complete ? <span className="text-gold-bright">Dzień zdobyty</span> : 'Wykonane dziś'}
+        {complete ? <span className="text-gold-bright">{t('Dzień zdobyty', 'Day conquered')}</span> : t('Wykonane dziś', 'Done today')}
       </p>
     </div>
   )

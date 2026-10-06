@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { migrateState } from '../lib/game'
 import { isValidCode, loadMeta, mergeStates, normalizeCode, same, saveMeta, syncApi } from '../lib/sync'
+import { t } from '../lib/i18n'
 
 const POLL_MS = 20000
 const PUSH_DELAY_MS = 800
@@ -115,7 +116,7 @@ export function useSync(state, setState) {
       return null
     } catch {
       setStatus(navigator.onLine ? 'error' : 'offline')
-      return 'Nie udało się połączyć z serwerem. Spróbuj ponownie.'
+      return t('Nie udało się połączyć z serwerem. Spróbuj ponownie.', 'Could not reach the server. Try again.')
     }
   }, [setMeta])
 
@@ -123,13 +124,13 @@ export function useSync(state, setState) {
   const joinCode = useCallback(
     async (input) => {
       const code = normalizeCode(input)
-      if (!isValidCode(code)) return 'Kod ma 12 znaków, np. ABCD-EFGH-JKLM.'
+      if (!isValidCode(code)) return t('Kod ma 12 znaków, np. ABCD-EFGH-JKLM.', 'The code has 12 characters, e.g. ABCD-EFGH-JKLM.')
       setStatus('syncing')
       try {
         const res = await syncApi.pull(code)
         if (res.status === 404) {
           setStatus(metaRef.current ? 'ok' : 'off')
-          return 'Nie ma takiego kodu. Sprawdź, czy przepisałeś go poprawnie.'
+          return t('Nie ma takiego kodu. Sprawdź, czy przepisałeś go poprawnie.', 'No such code exists. Check that you entered it correctly.')
         }
         if (res.status !== 200) throw new Error(res.data.error ?? `HTTP ${res.status}`)
         const remoteState = migrateState(res.data.state)
@@ -139,7 +140,7 @@ export function useSync(state, setState) {
         return null
       } catch {
         setStatus(navigator.onLine ? 'error' : 'offline')
-        return 'Nie udało się połączyć z serwerem. Spróbuj ponownie.'
+        return t('Nie udało się połączyć z serwerem. Spróbuj ponownie.', 'Could not reach the server. Try again.')
       }
     },
     [setMeta, setState],
@@ -150,8 +151,16 @@ export function useSync(state, setState) {
     setStatus('off')
   }, [setMeta])
 
+  // usunięcie danych z serwera i odłączenie (Ustawienia → Usuń wszystkie dane)
+  const deleteRemote = useCallback(async () => {
+    const code = metaRef.current?.code
+    if (code) await syncApi.remove(code).catch(() => {})
+    setMeta(null)
+    setStatus('off')
+  }, [setMeta])
+
   // aktualny kod bez czekania na ponowne renderowanie (np. zaraz po createCode)
   const getCode = useCallback(() => metaRef.current?.code ?? null, [])
 
-  return { code: meta?.code ?? null, getCode, status, syncNow: sync, createCode, joinCode, disconnect }
+  return { code: meta?.code ?? null, getCode, status, syncNow: sync, createCode, joinCode, disconnect, deleteRemote }
 }

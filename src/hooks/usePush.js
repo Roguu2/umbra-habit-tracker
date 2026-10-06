@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getInstallPrompt, getSubscription, isStandalone, loadPrefs, onInstallPrompt, pushApi, pushSupport, savePrefs } from '../lib/push'
+import { t } from '../lib/i18n'
 
 // Przypomnienia wymagają kodu synchronizacji — z niego serwer wie, co jest w planie i co już odhaczone.
 export function usePush(sync) {
@@ -26,9 +27,12 @@ export function usePush(sync) {
       // Brave domyślnie wyłącza usługę push — subskrypcja kończy się błędem "push service error"
       if (navigator.brave && /push service|registration failed/i.test(err.message ?? '')) {
         setError(
-          'Brave blokuje powiadomienia push. Wejdź w brave://settings/privacy, włącz „Use Google services for push messaging”, uruchom Brave ponownie i spróbuj jeszcze raz.',
+          t(
+            'Brave blokuje powiadomienia push. Wejdź w brave://settings/privacy, włącz „Use Google services for push messaging”, uruchom Brave ponownie i spróbuj jeszcze raz.',
+            'Brave blocks push notifications. Go to brave://settings/privacy, enable “Use Google services for push messaging”, restart Brave and try again.',
+          ),
         )
-      } else setError(err.message || 'Coś poszło nie tak. Spróbuj ponownie.')
+      } else setError(err.message || t('Coś poszło nie tak. Spróbuj ponownie.', 'Something went wrong. Try again.'))
       return false
     } finally {
       setBusy(false)
@@ -45,7 +49,7 @@ export function usePush(sync) {
       run(async () => {
         const result = await Notification.requestPermission()
         setPermission(result)
-        if (result !== 'granted') throw new Error('Bez zgody na powiadomienia przypomnienia nie zadziałają.')
+        if (result !== 'granted') throw new Error(t('Bez zgody na powiadomienia przypomnienia nie zadziałają.', 'Reminders won’t work without notification permission.'))
         if (!sync.getCode()) {
           const err = await sync.createCode()
           if (err) throw new Error(err)
@@ -83,7 +87,7 @@ export function usePush(sync) {
     () =>
       run(async () => {
         const sub = await getSubscription()
-        if (!sub) throw new Error('Przypomnienia nie są włączone na tym urządzeniu.')
+        if (!sub) throw new Error(t('Przypomnienia nie są włączone na tym urządzeniu.', 'Reminders are not enabled on this device.'))
         await pushApi.test(sub.endpoint)
       }),
     [run],

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { LEVEL_UP_LINES, titleFor } from '../lib/game'
+import { t } from '../lib/i18n'
 
 export default function LevelUpModal({ level, onClose }) {
   useEffect(() => {
@@ -117,7 +118,7 @@ function ModalBody({ level, onClose }) {
             transition={{ duration: 1.2, delay: 0.7 }}
             className="mt-6 font-display text-[11px] text-gold/80 uppercase"
           >
-            Poziom osiągnięty
+            {t('Poziom osiągnięty', 'Level reached')}
           </motion.p>
           <motion.h2
             id="levelup-title"
@@ -148,7 +149,7 @@ function ModalBody({ level, onClose }) {
             whileTap={{ scale: 0.96 }}
             className="hud-cut-sm mt-8 cursor-pointer bg-gradient-to-r from-[#6b4c12] via-gold to-[#6b4c12] px-8 py-3 font-display text-xs font-bold tracking-[0.35em] text-black uppercase"
           >
-            Kontynuuj wędrówkę
+            {t('Kontynuuj wędrówkę', 'Continue the journey')}
           </motion.button>
         </div>
       </motion.div>

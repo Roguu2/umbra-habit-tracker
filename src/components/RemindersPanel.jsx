@@ -4,6 +4,7 @@ import { Segmented } from './ui'
 import { GhostButton } from './SyncPanel'
 import { isIOS } from '../lib/push'
 import { sfx } from '../lib/sfx'
+import { t } from '../lib/i18n'
 
 // przycisk w rogu ekranu
 export function ReminderButton({ enabled, onClick }) {
@@ -14,7 +15,7 @@ export function ReminderButton({ enabled, onClick }) {
         sfx.page()
         onClick()
       }}
-      aria-label={enabled ? 'Przypomnienia: włączone' : 'Przypomnienia i aplikacja'}
+      aria-label={enabled ? t('Przypomnienia: włączone', 'Reminders: on') : t('Przypomnienia i aplikacja', 'Reminders and app')}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1, duration: 0.6 }}
@@ -61,7 +62,7 @@ function PanelBody({ push, hasCode, onClose }) {
       <motion.div
         role="dialog"
         aria-modal="true"
-        aria-label="Aplikacja i przypomnienia"
+        aria-label={t('Aplikacja i przypomnienia', 'App and reminders')}
         initial={{ opacity: 0, y: 40, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 30, scale: 0.97 }}
@@ -73,42 +74,52 @@ function PanelBody({ push, hasCode, onClose }) {
 
         <div className="relative space-y-7 p-6 sm:p-7">
           <header className="flex items-center justify-between">
-            <h2 className="font-display text-sm font-bold tracking-[0.3em] text-stone-200 uppercase">Aplikacja i przypomnienia</h2>
-            <button type="button" onClick={onClose} aria-label="Zamknij" className="cursor-pointer px-2 text-white/40 hover:text-white">
+            <h2 className="font-display text-sm font-bold tracking-[0.3em] text-stone-200 uppercase">{t('Aplikacja i przypomnienia', 'App and reminders')}</h2>
+            <button type="button" onClick={onClose} aria-label={t('Zamknij', 'Close')} className="cursor-pointer px-2 text-white/40 hover:text-white">
               ✕
             </button>
           </header>
 
-          <Section label="Aplikacja na ekranie głównym">
+          <Section label={t('Aplikacja na ekranie głównym', 'App on the Home Screen')}>
             {push.installed ? (
               <p className="text-sm text-white/60">
-                <span className="text-gold-bright">✓</span> Umbra działa tu jako aplikacja.
+                <span className="text-gold-bright">✓</span> {t('Umbra działa tu jako aplikacja.', 'Umbra runs here as an app.')}
               </p>
             ) : push.canInstall ? (
               <div className="space-y-2">
-                <GhostButton onClick={push.install}>Zainstaluj na tym urządzeniu</GhostButton>
-                <Hint>Własna ikona, pełny ekran, działa też bez internetu.</Hint>
+                <GhostButton onClick={push.install}>{t('Zainstaluj na tym urządzeniu', 'Install on this device')}</GhostButton>
+                <Hint>{t('Własna ikona, pełny ekran, działa też bez internetu.', 'Its own icon, full screen, works offline too.')}</Hint>
               </div>
             ) : isIOS() ? (
               <Hint>
-                W Safari stuknij <b className="text-white/70">Udostępnij</b> (kwadrat ze strzałką), potem{' '}
-                <b className="text-white/70">Do ekranu początkowego</b>.
+                {t('W Safari stuknij', 'In Safari, tap')} <b className="text-white/70">{t('Udostępnij', 'Share')}</b> {t('(kwadrat ze strzałką), potem', '(the square with an arrow), then')}{' '}
+                <b className="text-white/70">{t('Do ekranu początkowego', 'Add to Home Screen')}</b>.
               </Hint>
             ) : (
               <Hint>
-                W menu przeglądarki wybierz <b className="text-white/70">Zainstaluj aplikację</b> lub{' '}
-                <b className="text-white/70">Dodaj do ekranu głównego</b>.
+                {t('W menu przeglądarki wybierz', 'In the browser menu, choose')} <b className="text-white/70">{t('Zainstaluj aplikację', 'Install app')}</b> {t('lub', 'or')}{' '}
+                <b className="text-white/70">{t('Dodaj do ekranu głównego', 'Add to Home Screen')}</b>.
               </Hint>
             )}
           </Section>
 
-          <Section label="Przypomnienia">
+          <Section label={t('Przypomnienia', 'Reminders')}>
             {push.support === 'ios-install' ? (
-              <Hint>Na iPhonie przypomnienia działają w zainstalowanej aplikacji (iOS 16.4 lub nowszy). Zainstaluj ją, otwórz z ikony i wróć tutaj.</Hint>
+              <Hint>
+                {t(
+                  'Na iPhonie przypomnienia działają w zainstalowanej aplikacji (iOS 16.4 lub nowszy). Zainstaluj ją, otwórz z ikony i wróć tutaj.',
+                  'On iPhone, reminders work in the installed app (iOS 16.4 or later). Install it, open it from the icon and come back here.',
+                )}
+              </Hint>
             ) : push.support === 'unsupported' ? (
-              <Hint>Ta przeglądarka nie obsługuje powiadomień push.</Hint>
+              <Hint>{t('Ta przeglądarka nie obsługuje powiadomień push.', 'This browser does not support push notifications.')}</Hint>
             ) : push.permission === 'denied' ? (
-              <Hint>Powiadomienia są zablokowane dla tej strony. Odblokuj je w ustawieniach przeglądarki (ikona kłódki przy adresie) i wróć tutaj.</Hint>
+              <Hint>
+                {t(
+                  'Powiadomienia są zablokowane dla tej strony. Odblokuj je w ustawieniach przeglądarki (ikona kłódki przy adresie) i wróć tutaj.',
+                  'Notifications are blocked for this site. Unblock them in your browser settings (the padlock icon by the address) and come back here.',
+                )}
+              </Hint>
             ) : (
               <div className="space-y-5">
                 <div className="flex flex-wrap items-center gap-3">
@@ -124,7 +135,7 @@ function PanelBody({ push, hasCode, onClose }) {
                         : 'bg-gradient-to-r from-blood-deep via-blood to-blood-deep text-stone-100 shadow-[0_0_24px_rgba(195,20,47,0.35)]'
                     }`}
                   >
-                    {push.prefs.enabled ? 'Wyłącz' : 'Włącz przypomnienia'}
+                    {push.prefs.enabled ? t('Wyłącz', 'Turn off') : t('Włącz przypomnienia', 'Turn on reminders')}
                   </motion.button>
                   {push.prefs.enabled && (
                     <GhostButton
@@ -136,20 +147,20 @@ function PanelBody({ push, hasCode, onClose }) {
                         }
                       }}
                     >
-                      {tested ? 'Wysłano ✓' : 'Wyślij testowe'}
+                      {tested ? t('Wysłano ✓', 'Sent ✓') : t('Wyślij testowe', 'Send a test')}
                     </GhostButton>
                   )}
                 </div>
 
                 <div>
-                  <p className="mb-2 text-[11px] text-white/45">Przed zadaniem z godziną</p>
+                  <p className="mb-2 text-[11px] text-white/45">{t('Przed zadaniem z godziną', 'Before a timed quest')}</p>
                   <Segmented
                     id="push-lead"
                     size="sm"
                     value={push.prefs.lead}
                     onChange={(lead) => push.update({ lead })}
                     options={[
-                      { value: 0, label: 'O czasie' },
+                      { value: 0, label: t('O czasie', 'On time') },
                       { value: 5, label: '5 min' },
                       { value: 15, label: '15 min' },
                       { value: 30, label: '30 min' },
@@ -158,14 +169,14 @@ function PanelBody({ push, hasCode, onClose }) {
                 </div>
 
                 <div>
-                  <p className="mb-2 text-[11px] text-white/45">Wieczorem, gdy zostały zadania</p>
+                  <p className="mb-2 text-[11px] text-white/45">{t('Wieczorem, gdy zostały zadania', 'In the evening, if quests remain')}</p>
                   <Segmented
                     id="push-evening"
                     size="sm"
                     value={push.prefs.evening ?? 'off'}
                     onChange={(v) => push.update({ evening: v === 'off' ? null : v })}
                     options={[
-                      { value: 'off', label: 'Wył.' },
+                      { value: 'off', label: t('Wył.', 'Off') },
                       { value: '19:00', label: '19:00' },
                       { value: '20:00', label: '20:00' },
                       { value: '21:00', label: '21:00' },
@@ -175,8 +186,11 @@ function PanelBody({ push, hasCode, onClose }) {
                 </div>
 
                 <Hint>
-                  Przychodzą także przy zamkniętej stronie. Dotyczą zadań z ustawioną godziną; odhaczone wcześniej zadania nie są przypominane.
-                  {!hasCode && ' Włączenie utworzy kod synchronizacji — dzięki niemu serwer wie, co masz w planie.'}
+                  {t(
+                    'Przychodzą także przy zamkniętej stronie. Dotyczą zadań z ustawioną godziną; odhaczone wcześniej zadania nie są przypominane.',
+                    "They arrive even when the page is closed. They apply to quests with a set time; quests you've already completed won't trigger a reminder.",
+                  )}
+                  {!hasCode && t(' Włączenie utworzy kod synchronizacji — dzięki niemu serwer wie, co masz w planie.', ' Turning them on creates a sync code — it lets the server know what you have planned.')}
                 </Hint>
               </div>
             )}

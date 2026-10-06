@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { DAY_LONG, DAY_SHORT, TIERS, WEEK_ORDER } from '../lib/game'
 import { sfx } from '../lib/sfx'
+import { t } from '../lib/i18n'
 
 // Wybór dni tygodnia w formie małych rombów-pieczęci.
 export default function DayPicker({ days, onChange, tier = 'blood', compact = false }) {
@@ -11,7 +12,7 @@ export default function DayPicker({ days, onChange, tier = 'blood', compact = fa
   }
 
   return (
-    <div className={`flex ${compact ? 'gap-1' : 'gap-1.5'}`} role="group" aria-label="Dni tygodnia">
+    <div className={`flex ${compact ? 'gap-1' : 'gap-1.5'}`} role="group" aria-label={t('Dni tygodnia', 'Days of the week')}>
       {WEEK_ORDER.map((d) => {
         const on = days.includes(d)
         return (

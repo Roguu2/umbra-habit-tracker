@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { isMuted, setMuted, sfx } from '../lib/sfx'
+import { t } from '../lib/i18n'
 
 export default function SoundToggle() {
   const [muted, setMutedState] = useState(isMuted)
@@ -17,7 +18,7 @@ export default function SoundToggle() {
       type="button"
       onClick={toggle}
       aria-pressed={!muted}
-      aria-label={muted ? 'Włącz dźwięk' : 'Wycisz dźwięk'}
+      aria-label={muted ? t('Włącz dźwięk', 'Turn sound on') : t('Wycisz dźwięk', 'Mute sound')}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.8, duration: 0.6 }}
@@ -40,7 +41,7 @@ export default function SoundToggle() {
           ))}
         </span>
       )}
-      <span className="font-display text-[10px] tracking-[0.3em] text-white/45 uppercase">{muted ? 'Cisza' : 'Dźwięk'}</span>
+      <span className="font-display text-[10px] tracking-[0.3em] text-white/45 uppercase">{muted ? t('Cisza', 'Muted') : t('Dźwięk', 'Sound')}</span>
     </motion.button>
   )
 }

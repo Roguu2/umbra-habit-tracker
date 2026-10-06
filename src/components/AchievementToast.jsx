@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { MiniRune } from './ui'
 import { sfx } from '../lib/sfx'
+import { t } from '../lib/i18n'
 
 export default function AchievementToast({ achievement, onDone }) {
   useEffect(() => {
@@ -39,7 +40,7 @@ export default function AchievementToast({ achievement, onDone }) {
                 <MiniRune rune={achievement.rune} tier="gold" lit size="size-12" />
               </motion.div>
               <div className="min-w-0">
-                <p className="text-[10px] tracking-[0.35em] text-gold/80 uppercase">Osiągnięcie odblokowane</p>
+                <p className="text-[10px] tracking-[0.35em] text-gold/80 uppercase">{t('Osiągnięcie odblokowane', 'Achievement unlocked')}</p>
                 <p className="mt-0.5 font-display text-base font-black text-stone-100">{achievement.name}</p>
                 <p className="text-[12px] text-white/50">{achievement.desc}</p>
               </div>

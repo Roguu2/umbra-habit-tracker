@@ -3,9 +3,16 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Segmented } from './ui'
 import { ALL_DAYS, CATEGORIES, detectCategory, formatDay } from '../lib/game'
 import { sfx } from '../lib/sfx'
+import { t } from '../lib/i18n'
 
 // Szybkie dodawanie: wpisz i Enter. Godzina i powtarzanie są opcjonalne.
-const SUGGESTIONS = ['Trening', 'Spacer 30 min', 'Czytanie 20 stron', 'Wypić 2 l wody', 'Rozciąganie']
+const SUGGESTIONS = [
+  t('Trening', 'Workout'),
+  t('Spacer 30 min', 'Walk 30 min'),
+  t('Czytanie 20 stron', 'Read 20 pages'),
+  t('Wypić 2 l wody', 'Drink 2 l of water'),
+  t('Rozciąganie', 'Stretching'),
+]
 
 // suggest: pokazuje podpowiedzi (np. gdy plan jest jeszcze pusty)
 export default function QuickAdd({ date, isToday, onAdd, onMore, id = 'quick', suggest = false }) {
@@ -25,7 +32,7 @@ export default function QuickAdd({ date, isToday, onAdd, onMore, id = 'quick', s
     setTime('')
   }
 
-  const dayLabel = isToday ? 'Tylko dziś' : `Tylko ${formatDay(date, { weekday: 'short', day: 'numeric' })}`
+  const dayLabel = isToday ? t('Tylko dziś', 'Today only') : t(`Tylko ${formatDay(date, { weekday: 'short', day: 'numeric' })}`, `Only ${formatDay(date, { weekday: 'short', day: 'numeric' })}`)
 
   return (
     <form onSubmit={submit} className="relative">
@@ -40,17 +47,17 @@ export default function QuickAdd({ date, isToday, onAdd, onMore, id = 'quick', s
             ref={inputRef}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Dodaj do planu… np. Trening nóg"
+            placeholder={t('Dodaj do planu… np. Trening nóg', 'Add to the plan… e.g. Leg day')}
             maxLength={60}
-            aria-label="Nowe zadanie"
+            aria-label={t('Nowe zadanie', 'New quest')}
             className="min-w-0 flex-1 bg-transparent py-1.5 font-display text-base text-stone-100 outline-none placeholder:text-white/30"
           />
           <input
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
-            aria-label="Godzina (opcjonalnie)"
-            title="Godzina (opcjonalnie)"
+            aria-label={t('Godzina (opcjonalnie)', 'Time (optional)')}
+            title={t('Godzina (opcjonalnie)', 'Time (optional)')}
             className="w-[92px] shrink-0 border border-white/10 bg-black/40 px-2 py-1.5 text-sm text-stone-200 outline-none [color-scheme:dark] focus:border-blood-bright"
           />
           <motion.button
@@ -59,7 +66,7 @@ export default function QuickAdd({ date, isToday, onAdd, onMore, id = 'quick', s
             whileTap={{ scale: 0.92 }}
             className="hidden shrink-0 cursor-pointer bg-blood px-4 py-2 font-display text-[11px] font-bold tracking-[0.2em] text-stone-100 uppercase transition-opacity disabled:cursor-default disabled:opacity-30 sm:block"
           >
-            Dodaj
+            {t('Dodaj', 'Add')}
           </motion.button>
         </div>
 
@@ -72,7 +79,7 @@ export default function QuickAdd({ date, isToday, onAdd, onMore, id = 'quick', s
               onChange={setRepeat}
               options={[
                 { value: 'once', label: dayLabel },
-                { value: 'daily', label: 'Codziennie' },
+                { value: 'daily', label: t('Codziennie', 'Daily') },
               ]}
             />
             <button
@@ -85,7 +92,7 @@ export default function QuickAdd({ date, isToday, onAdd, onMore, id = 'quick', s
               }}
               className="cursor-pointer px-1 text-[11px] tracking-wider text-white/45 hover:text-gold-bright"
             >
-              Więcej opcji…
+              {t('Więcej opcji…', 'More options…')}
             </button>
           </div>
           <AnimatePresence mode="wait">
@@ -112,7 +119,7 @@ export default function QuickAdd({ date, isToday, onAdd, onMore, id = 'quick', s
               className="overflow-hidden"
             >
               <div className="flex flex-wrap items-center gap-1.5 border-t border-white/[0.06] pt-3 mt-3">
-                <span className="mr-1 text-[10px] tracking-[0.2em] text-white/35 uppercase">Np.</span>
+                <span className="mr-1 text-[10px] tracking-[0.2em] text-white/35 uppercase">{t('Np.', 'E.g.')}</span>
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s}

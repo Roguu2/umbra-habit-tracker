@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { MiniRune, Panel } from './ui'
 import { attributeStats, characterClass, weakSpot } from '../lib/attributes'
 import { TIERS } from '../lib/game'
+import { t } from '../lib/i18n'
 
 const SIZE = 300
 const C = SIZE / 2
@@ -23,13 +24,13 @@ export default function CharacterSheet({ state, today }) {
   const weak = weakSpot(attrs)
 
   return (
-    <Panel title="Karta postaci" subtitle="atrybuty rosną z każdą pieczęcią" delay={0.25}>
+    <Panel title={t('Karta postaci', 'Character Sheet')} subtitle={t('atrybuty rosną z każdą pieczęcią', 'attributes grow with every seal')} delay={0.25}>
       <div className="grid items-center gap-8 md:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
         <Radar attrs={attrs} />
 
         <div className="space-y-6">
           <div>
-            <p className="text-[10px] tracking-[0.3em] text-white/40 uppercase">Klasa</p>
+            <p className="text-[10px] tracking-[0.3em] text-white/40 uppercase">{t('Klasa', 'Class')}</p>
             <motion.p
               key={cls.name}
               initial={{ opacity: 0, y: 6 }}
@@ -70,12 +71,14 @@ export default function CharacterSheet({ state, today }) {
             <p className="border-l-2 border-blood/60 pl-3 text-[12px] leading-relaxed text-white/55">
               {weak.type === 'lagging' ? (
                 <>
-                  <b className="text-blood-bright">{weak.attr.label}</b> słabnie — w ostatnich 14 dniach wykonano {weak.attr.recent.done} z{' '}
-                  {weak.attr.recent.planned} zaplanowanych zadań.
+                  <b className="text-blood-bright">{weak.attr.label}</b>{' '}
+                  {t('słabnie — w ostatnich 14 dniach wykonano', 'is waning — in the last 14 days you completed')} {weak.attr.recent.done} {t('z', 'of')}{' '}
+                  {weak.attr.recent.planned} {t('zaplanowanych zadań.', weak.attr.recent.planned === 1 ? 'planned quest.' : 'planned quests.')}
                 </>
               ) : (
                 <>
-                  <b className="text-white/80">{weak.attr.label}</b> pozostaje nieodkryta — dodaj zadanie z tej dziedziny, by rozwinąć atrybut.
+                  <b className="text-white/80">{weak.attr.label}</b>{' '}
+                  {t('pozostaje nieodkryta — dodaj zadanie z tej dziedziny, by rozwinąć atrybut.', 'remains undiscovered — add a quest from this domain to awaken the attribute.')}
                 </>
               )}
             </p>
@@ -97,7 +100,7 @@ function Radar({ attrs }) {
 
   return (
     <div className="relative mx-auto w-full max-w-[380px]">
-      <svg viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.w} ${VIEW.h}`} className="w-full" role="img" aria-label="Wykres atrybutów postaci">
+      <svg viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.w} ${VIEW.h}`} className="w-full" role="img" aria-label={t('Wykres atrybutów postaci', 'Character attribute chart')}>
         {/* siatka */}
         {[0.25, 0.5, 0.75, 1].map((f) => (
           <polygon
@@ -135,7 +138,7 @@ function Radar({ attrs }) {
               r="20"
               fill="transparent"
               tabIndex={0}
-              aria-label={`${a.label}: poziom ${a.level}, ${a.exp} EXP`}
+              aria-label={`${a.label}: ${t('poziom', 'level')} ${a.level}, ${a.exp} EXP`}
               onMouseEnter={() => setHover(i)}
               onMouseLeave={() => setHover(null)}
               onFocus={() => setHover(i)}
@@ -178,10 +181,10 @@ function Radar({ attrs }) {
         >
           <p className="font-display text-[11px] font-bold tracking-[0.2em] text-stone-100 uppercase">{active.label}</p>
           <p className="mt-1 tabular-nums text-white/60">
-            Poziom {active.level} · {active.exp} EXP łącznie
+            {t('Poziom', 'Level')} {active.level} · {active.exp} EXP {t('łącznie', 'total')}
           </p>
           <p className="tabular-nums text-white/40">
-            14 dni: {active.recent.done}/{active.recent.planned} zadań
+            {t('14 dni:', '14 days:')} {active.recent.done}/{active.recent.planned} {t('zadań', 'quests')}
           </p>
         </div>
       )}

@@ -4,9 +4,11 @@ import DayPicker from './DayPicker'
 import { Segmented } from './ui'
 import { ALL_DAYS, CATEGORIES, WORK_DAYS, dayKey, detectCategory, formatDay } from '../lib/game'
 import { sfx } from '../lib/sfx'
+import { t } from '../lib/i18n'
 
 function repeatOf(q) {
   if (q.date) return 'once'
+  if (q.perWeek) return 'weekly'
   const d = [...(q.days ?? ALL_DAYS)].sort().join()
   if (d === ALL_DAYS.join()) return 'daily'
   if (d === WORK_DAYS.join()) return 'workdays'
@@ -31,6 +33,10 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
   const [date, setDate] = useState(draft.date ?? dayKey())
   const [steps, setSteps] = useState(draft.steps ?? [])
   const [stepDraft, setStepDraft] = useState('')
+  const [kind, setKind] = useState(draft.kind ?? 'check')
+  const [target, setTarget] = useState(draft.target ?? 8)
+  const [unit, setUnit] = useState(draft.unit ?? '')
+  const [perWeek, setPerWeek] = useState(draft.perWeek ?? 3)
   const [confirmRemove, setConfirmRemove] = useState(false)
   const nameRef = useRef(null)
 
@@ -42,7 +48,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
   }, [onClose])
 
   const category = name.trim() ? CATEGORIES[detectCategory(name)] : null
-  const valid = name.trim() && (repeat !== 'custom' || days.length > 0)
+  const valid = name.trim() && (repeat !== 'custom' || days.length > 0) && (kind !== 'count' || Number(target) >= 2)
 
   const addStep = () => {
     if (!stepDraft.trim()) return
@@ -54,7 +60,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
   const submit = (e) => {
     e?.preventDefault()
     if (!valid) return
-    const allSteps = stepDraft.trim() ? [...steps, stepDraft.trim()] : steps
+    const allSteps = kind === 'count' ? [] : stepDraft.trim() ? [...steps, stepDraft.trim()] : steps
     sfx.forge()
     onSave({
       id: draft.id,
@@ -62,7 +68,11 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
       time,
       steps: allSteps,
       date: repeat === 'once' ? date : null,
-      days: { daily: ALL_DAYS, workdays: WORK_DAYS, custom: days, once: [] }[repeat],
+      days: { daily: ALL_DAYS, workdays: WORK_DAYS, custom: days, once: [], weekly: ALL_DAYS }[repeat],
+      perWeek: repeat === 'weekly' ? perWeek : null,
+      kind,
+      target,
+      unit,
     })
     onClose()
   }
@@ -80,7 +90,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
         onSubmit={submit}
         role="dialog"
         aria-modal="true"
-        aria-label={editing ? 'Edytuj zadanie' : 'Nowe zadanie'}
+        aria-label={editing ? t('Edytuj zadanie', 'Edit quest') : t('Nowe zadanie', 'New quest')}
         initial={{ opacity: 0, y: 40, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 30, scale: 0.97 }}
@@ -93,9 +103,9 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
         <div className="relative space-y-6 p-6 sm:p-7">
           <header className="flex items-center justify-between">
             <h2 className="font-display text-sm font-bold tracking-[0.3em] text-stone-200 uppercase">
-              {editing ? 'Edytuj zadanie' : 'Nowe zadanie'}
+              {editing ? t('Edytuj zadanie', 'Edit quest') : t('Nowe zadanie', 'New quest')}
             </h2>
-            <button type="button" onClick={onClose} aria-label="Zamknij" className="cursor-pointer px-2 text-white/40 hover:text-white">
+            <button type="button" onClick={onClose} aria-label={t('Zamknij', 'Close')} className="cursor-pointer px-2 text-white/40 hover:text-white">
               ✕
             </button>
           </header>
@@ -105,9 +115,9 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
               ref={nameRef}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Co chcesz zrobić?"
+              placeholder={t('Co chcesz zrobić?', 'What do you want to do?')}
               maxLength={60}
-              aria-label="Nazwa"
+              aria-label={t('Nazwa', 'Name')}
               className="w-full border-b border-white/15 bg-transparent pb-2 font-display text-xl text-stone-100 outline-none transition-colors placeholder:text-white/25 focus:border-blood-bright"
             />
             <div className="mt-2 h-4 text-[11px] tracking-[0.15em] text-white/40 uppercase">
@@ -121,37 +131,98 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
             </div>
           </div>
 
-          <Field label="Godzina" hint="opcjonalnie">
+          <Field label={t('Rodzaj', 'Type')}>
+            <Segmented
+              id="editor-kind"
+              size="sm"
+              value={kind}
+              onChange={setKind}
+              options={[
+                { value: 'check', label: t('Do odhaczenia', 'Check off') },
+                { value: 'count', label: t('Licznik', 'Counter') },
+                { value: 'avoid', label: t('Czego unikam', 'Avoid') },
+              ]}
+            />
+            <div className="mt-3">
+              {kind === 'count' && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <input
+                    type="number"
+                    min={2}
+                    max={99}
+                    value={target}
+                    onChange={(e) => setTarget(e.target.value)}
+                    aria-label={t('Cel', 'Goal')}
+                    className="w-20 border border-white/15 bg-black/40 px-3 py-2 font-display text-base text-stone-100 outline-none [color-scheme:dark] focus:border-blood-bright"
+                  />
+                  <input
+                    value={unit}
+                    onChange={(e) => setUnit(e.target.value)}
+                    maxLength={16}
+                    placeholder={t('np. szklanek', 'e.g. glasses')}
+                    aria-label={t('Jednostka', 'Unit')}
+                    className="w-36 border-b border-white/15 bg-transparent py-1 text-sm text-stone-200 outline-none placeholder:text-white/25 focus:border-gold/60"
+                  />
+                  <span className="text-[11px] text-white/40">{t('zalicza się po osiągnięciu celu', 'completes when you reach the goal')}</span>
+                </div>
+              )}
+              {kind === 'avoid' && (
+                <p className="text-[11px] leading-relaxed text-white/40">
+                  {t(
+                    'Np. „Bez słodyczy”. Odhacz wieczorem, jeśli dziś wytrwałeś.',
+                    'E.g. “No sweets”. Check it off in the evening if you held out today.',
+                  )}
+                </p>
+              )}
+            </div>
+          </Field>
+
+          <Field label={t('Godzina', 'Time')} hint={t('opcjonalnie', 'optional')}>
             <div className="flex items-center gap-3">
               <input
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                aria-label="Godzina"
+                aria-label={t('Godzina', 'Time')}
                 className="border border-white/15 bg-black/40 px-3 py-2 font-display text-base text-stone-100 outline-none [color-scheme:dark] focus:border-blood-bright"
               />
               {time && (
                 <button type="button" onClick={() => setTime('')} className="cursor-pointer text-[11px] tracking-widest text-white/40 uppercase hover:text-white">
-                  bez godziny
+                  {t('bez godziny', 'no time')}
                 </button>
               )}
             </div>
           </Field>
 
-          <Field label="Kiedy">
+          <Field label={t('Kiedy', 'When')}>
             <Segmented
               id="editor-repeat"
               value={repeat}
               onChange={setRepeat}
               options={[
-                { value: 'once', label: 'Jednorazowo' },
-                { value: 'daily', label: 'Codziennie' },
-                { value: 'workdays', label: 'Pn–Pt' },
-                { value: 'custom', label: 'Wybrane dni' },
+                { value: 'once', label: t('Jednorazowo', 'One-time') },
+                { value: 'daily', label: t('Codziennie', 'Daily') },
+                { value: 'workdays', label: t('Pn–Pt', 'Mon–Fri') },
+                { value: 'custom', label: t('Wybrane dni', 'Chosen days') },
+                { value: 'weekly', label: t('X razy w tyg.', 'X times a week') },
               ]}
             />
             <div className="mt-3">
               {repeat === 'custom' && <DayPicker days={days} onChange={setDays} />}
+              {repeat === 'weekly' && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <Segmented
+                    id="editor-per-week"
+                    size="sm"
+                    value={perWeek}
+                    onChange={setPerWeek}
+                    options={[1, 2, 3, 4, 5, 6].map((n) => ({ value: n, label: `${n}×` }))}
+                  />
+                  <span className="text-[11px] text-white/40">
+                    {t('w dowolne dni — nie psuje pełnego dnia', "on any days — won't spoil a full day")}
+                  </span>
+                </div>
+              )}
               {repeat === 'once' && (
                 <div className="flex flex-wrap items-center gap-3">
                   <input
@@ -159,7 +230,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
                     value={date}
                     min={dayKey()}
                     onChange={(e) => e.target.value && setDate(e.target.value)}
-                    aria-label="Data"
+                    aria-label={t('Data', 'Date')}
                     className="border border-white/15 bg-black/40 px-3 py-2 font-display text-sm text-stone-100 outline-none [color-scheme:dark] focus:border-blood-bright"
                   />
                   <span className="font-lore text-base text-white/45 italic">{formatDay(date)}</span>
@@ -168,7 +239,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
             </div>
           </Field>
 
-          <Field label="Kroki" hint="opcjonalnie — np. ćwiczenia w treningu">
+          <Field hidden={kind === 'count'} label={t('Kroki', 'Steps')} hint={t('opcjonalnie — np. ćwiczenia w treningu', 'optional — e.g. exercises in a workout')}>
             {steps.length > 0 && (
               <ol className="mb-2 space-y-1">
                 <AnimatePresence initial={false}>
@@ -186,7 +257,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
                       <button
                         type="button"
                         onClick={() => setSteps((all) => all.filter((_, j) => j !== i))}
-                        aria-label={`Usuń krok ${s}`}
+                        aria-label={t(`Usuń krok ${s}`, `Remove step ${s}`)}
                         className="cursor-pointer px-1 text-xs text-white/25 hover:text-blood-bright"
                       >
                         ✕
@@ -206,13 +277,13 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
                     addStep()
                   }
                 }}
-                placeholder="np. Przysiad 4×8"
+                placeholder={t('np. Przysiad 4×8', 'e.g. Squat 4×8')}
                 maxLength={60}
-                aria-label="Nowy krok"
+                aria-label={t('Nowy krok', 'New step')}
                 className="min-w-0 flex-1 border-b border-white/10 bg-transparent py-1 text-sm text-stone-200 outline-none placeholder:text-white/25 focus:border-gold/60"
               />
               <button type="button" onClick={addStep} className="cursor-pointer px-2 text-[11px] tracking-widest text-gold/80 uppercase hover:text-gold-bright">
-                + dodaj
+                {t('+ dodaj', '+ add')}
               </button>
             </div>
           </Field>
@@ -233,7 +304,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
                 }}
                 className="cursor-pointer text-[11px] tracking-[0.2em] text-blood-bright/70 uppercase hover:text-blood-bright"
               >
-                {confirmRemove ? 'Na pewno usunąć?' : 'Usuń'}
+                {confirmRemove ? t('Na pewno usunąć?', 'Really remove?') : t('Usuń', 'Remove')}
               </button>
             ) : (
               <span />
@@ -245,7 +316,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
               whileTap={{ scale: 0.97 }}
               className="hud-cut-sm cursor-pointer bg-gradient-to-r from-blood-deep via-blood to-blood-deep px-8 py-3 font-display text-xs font-bold tracking-[0.3em] text-stone-100 uppercase shadow-[0_0_24px_rgba(195,20,47,0.35)] disabled:cursor-not-allowed disabled:opacity-35"
             >
-              {editing ? 'Zapisz' : 'Dodaj do planu'}
+              {editing ? t('Zapisz', 'Save') : t('Dodaj do planu', 'Add to plan')}
             </motion.button>
           </footer>
         </div>
@@ -254,7 +325,8 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
   )
 }
 
-function Field({ label, hint, children }) {
+function Field({ label, hint, hidden = false, children }) {
+  if (hidden) return null
   return (
     <div>
       <p className="mb-2 text-[10px] tracking-[0.3em] text-white/40 uppercase">

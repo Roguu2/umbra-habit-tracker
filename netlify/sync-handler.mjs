@@ -4,6 +4,7 @@
 // POST            { state }          → nowy kod, { code, rev }
 // GET  ?code=X                       → { rev, state }
 // PUT  ?code=X    { baseRev, state } → { rev }, albo 409 z aktualnym { rev, state }, gdy ktoś zapisał wcześniej
+// DELETE ?code=X                     → usuwa dane z serwera
 
 const ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ' // bez 0/O i 1/I, łatwiej przepisać z ekranu
 const CODE_RE = /^[2-9A-HJ-NP-Z]{12}$/
@@ -58,6 +59,12 @@ export function createSyncHandler(getStore) {
       if (!entry) return json(404, { error: 'Nie ma takiego kodu' })
 
       if (req.method === 'GET') return json(200, { rev: entry.data.rev, state: entry.data.state })
+
+      // usunięcie danych z serwera (subskrypcje push bez kodu usuwa potem zaplanowana funkcja)
+      if (req.method === 'DELETE') {
+        await store.delete(code)
+        return json(200, { ok: true })
+      }
 
       if (req.method === 'PUT') {
         const body = await readBody(req)

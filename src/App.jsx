@@ -8,6 +8,11 @@ import AchievementToast from './components/AchievementToast'
 import SoundToggle from './components/SoundToggle'
 import SyncPanel, { SyncButton } from './components/SyncPanel'
 import RemindersPanel, { ReminderButton } from './components/RemindersPanel'
+import SettingsPanel from './components/SettingsPanel'
+import FeedbackPanel from './components/FeedbackPanel'
+import LegalPanel from './components/LegalPanel'
+import HabitDetail from './components/HabitDetail'
+import Landing from './components/Landing'
 import { usePush } from './hooks/usePush'
 import QuestEditor from './components/QuestEditor'
 import Onboarding from './components/Onboarding'
@@ -18,6 +23,7 @@ import { useGame } from './hooks/useGame'
 import { titleFor } from './lib/game'
 import { dayStats } from './lib/stats'
 import { sfx } from './lib/sfx'
+import { t } from './lib/i18n'
 
 export default function App() {
   const game = useGame()
@@ -25,6 +31,7 @@ export default function App() {
   const [tab, setTab] = useState('today')
   const [planFocus, setPlanFocus] = useState(null)
   const [editing, setEditing] = useState(null)
+  const [detailId, setDetailId] = useState(null)
   const [tourOpen, setTourOpen] = useState(false)
 
   // link ?sync=KOD z innego urządzenia otwiera okno synchronizacji z wpisanym kodem
@@ -33,35 +40,61 @@ export default function App() {
     if (code) history.replaceState(null, '', location.pathname)
     return code
   })
-  const [syncOpen, setSyncOpen] = useState(Boolean(linkCode))
+  // otwarte okno: null | 'sync' | 'reminders' | 'settings' | 'feedback' | 'legal'
+  const [panel, setPanel] = useState(linkCode ? 'sync' : null)
+  const closePanel = () => setPanel(null)
   const push = usePush(game.sync)
-  const [remindersOpen, setRemindersOpen] = useState(false)
+
+  // strona powitalna tylko przy pierwszej wizycie (bez danych i bez kodu)
+  const fresh = !state.onboarded && state.quests.length === 0 && Object.keys(state.history).length === 0 && !game.sync.code
+  const [landing, setLanding] = useState(fresh && !linkCode)
 
   const todayStats = dayStats(state, today)
+  const detail = state.quests.find((q) => q.id === detailId) ?? null
 
   const openPlan = (key) => {
     setPlanFocus(key)
     setTab('plan')
   }
 
-  // potwierdzenie drugim kliknięciem (okna confirm() nie działają w każdym środowisku, np. w osadzonej stronie)
-  const [confirmReset, setConfirmReset] = useState(false)
-  const resetAll = () => {
-    if (!confirmReset) {
-      sfx.tick()
-      setConfirmReset(true)
-      setTimeout(() => setConfirmReset(false), 4000)
-      return
-    }
-    setConfirmReset(false)
-    sfx.abandon()
-    actions.reset()
+  const open = (name) => {
+    if (name === 'tour') setTourOpen(true)
+    else setPanel(name)
   }
 
   const views = {
     today: <TodayView game={game} onEdit={setEditing} onOpenPlan={openPlan} />,
-    plan: <PlanView game={game} focusDay={planFocus} onEdit={setEditing} />,
+    plan: <PlanView game={game} focusDay={planFocus} onEdit={setEditing} onDetail={(q) => setDetailId(q.id)} />,
     progress: <ProgressView game={game} />,
+  }
+
+  const panels = (
+    <>
+      <SettingsPanel open={panel === 'settings'} onClose={closePanel} game={game} sync={game.sync} push={push} onOpen={open} />
+      <RemindersPanel open={panel === 'reminders'} push={push} hasCode={Boolean(game.sync.code)} onClose={closePanel} />
+      <SyncPanel open={panel === 'sync'} sync={game.sync} initialCode={game.sync.code ? null : linkCode} onClose={closePanel} />
+      <FeedbackPanel open={panel === 'feedback'} onClose={closePanel} />
+      <LegalPanel open={panel === 'legal'} onClose={closePanel} />
+    </>
+  )
+
+  if (landing) {
+    return (
+      <div className="relative min-h-screen overflow-x-hidden text-stone-200">
+        <Atmosphere />
+        <AnimatePresence>
+          <Landing
+            onStart={() => setLanding(false)}
+            onHaveCode={() => {
+              setLanding(false)
+              setPanel('sync')
+            }}
+            onLegal={() => setPanel('legal')}
+          />
+        </AnimatePresence>
+        {panels}
+      </div>
+    )
   }
 
   return (
@@ -99,43 +132,47 @@ export default function App() {
           </AnimatePresence>
         </main>
 
-        <footer className="mt-16 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-          <button
-            type="button"
-            onClick={() => {
-              sfx.page()
-              setTourOpen(true)
-            }}
-            className="cursor-pointer text-[10px] tracking-[0.3em] text-white/35 uppercase transition-colors hover:text-gold-bright"
-          >
-            Poradnik
-          </button>
-          <button
-            type="button"
-            onClick={resetAll}
-            className={`cursor-pointer text-[10px] tracking-[0.3em] uppercase transition-colors hover:text-blood-bright ${
-              confirmReset ? 'text-blood-bright' : 'text-white/20'
-            }`}
-          >
-            {confirmReset ? 'Kliknij ponownie, aby usunąć wszystkie dane' : 'Zacznij od nowa'}
-          </button>
+        <footer className="mt-16 mb-16 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:mb-0">
+          {[
+            ['settings', t('Ustawienia', 'Settings')],
+            ['tour', t('Poradnik', 'Guide')],
+            ['feedback', t('Zgłoś problem', 'Report a problem')],
+            ['legal', t('Prywatność', 'Privacy')],
+          ].map(([name, label]) => (
+            <button
+              key={name}
+              type="button"
+              onClick={() => {
+                sfx.page()
+                open(name)
+              }}
+              className="cursor-pointer text-[10px] tracking-[0.3em] text-white/35 uppercase transition-colors hover:text-gold-bright"
+            >
+              {label}
+            </button>
+          ))}
         </footer>
       </div>
 
       <SoundToggle />
       <div className="fixed bottom-4 left-4 z-40 flex gap-2 sm:bottom-6 sm:left-6">
-        <SyncButton status={game.sync.status} onClick={() => setSyncOpen(true)} />
-        <ReminderButton enabled={push.prefs.enabled} onClick={() => setRemindersOpen(true)} />
+        <SyncButton status={game.sync.status} onClick={() => setPanel('sync')} />
+        <ReminderButton enabled={push.prefs.enabled} onClick={() => setPanel('reminders')} />
+        <SettingsButton onClick={() => setPanel('settings')} />
       </div>
-      <RemindersPanel open={remindersOpen} push={push} hasCode={Boolean(game.sync.code)} onClose={() => setRemindersOpen(false)} />
-      <SyncPanel
-        open={syncOpen}
-        sync={game.sync}
-        initialCode={game.sync.code ? null : linkCode}
-        onClose={() => setSyncOpen(false)}
+      {panels}
+      <HabitDetail
+        quest={detail}
+        state={state}
+        today={today}
+        onClose={() => setDetailId(null)}
+        onEdit={(q) => {
+          setDetailId(null)
+          setEditing(q)
+        }}
       />
       <Onboarding
-        open={(!state.onboarded && !syncOpen && !remindersOpen) || tourOpen}
+        open={(!state.onboarded && !panel) || tourOpen}
         defaultName={state.profile.name}
         onFinish={(name) => {
           actions.finishOnboarding(name)
@@ -146,5 +183,29 @@ export default function App() {
       <AchievementToast achievement={game.toast} onDone={game.dismissToast} />
       <LevelUpModal level={game.levelUpShown} onClose={game.closeLevelUp} />
     </div>
+  )
+}
+
+function SettingsButton({ onClick }) {
+  return (
+    <motion.button
+      type="button"
+      onClick={() => {
+        sfx.page()
+        onClick()
+      }}
+      aria-label={t('Ustawienia', 'Settings')}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 1.1, duration: 0.6 }}
+      whileHover={{ scale: 1.06, rotate: 30 }}
+      whileTap={{ scale: 0.92 }}
+      className="hud-cut-sm flex cursor-pointer items-center bg-[#0b0a0d]/80 px-3.5 py-2.5 ring-1 ring-white/10 backdrop-blur-xl"
+    >
+      <svg viewBox="0 0 16 16" className="size-4" aria-hidden fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="1.3" strokeLinejoin="round">
+        <path d="M8 1.5l1.2 1.7 2-.5.4 2 1.9.9-.9 1.9.9 1.9-1.9.9-.4 2-2-.5L8 14.5l-1.2-1.7-2 .5-.4-2-1.9-.9.9-1.9-.9-1.9 1.9-.9.4-2 2 .5Z" />
+        <circle cx="8" cy="8" r="2.2" />
+      </svg>
+    </motion.button>
   )
 }

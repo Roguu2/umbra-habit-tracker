@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { DAY_SHORT, dayKey, formatDay, parseKey, shiftKey, weekStart } from '../../lib/game'
 import { dayStats } from '../../lib/stats'
 import { sfx } from '../../lib/sfx'
+import { locale, t } from '../../lib/i18n'
 
 const WEEKS = 20
 
@@ -14,6 +15,7 @@ export function cellStyle(stats, { future, beforeStart }) {
       background: 'transparent',
       border: `1px dashed ${stats.scheduled.length ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.06)'}`,
     }
+  if (stats.paused) return { background: 'transparent', border: '1px solid rgba(226,180,90,0.35)' }
   if (stats.ratio === null) return { background: 'rgba(255,255,255,0.035)' }
   if (stats.perfect) return { background: '#e2b45a', boxShadow: '0 0 8px rgba(226,180,90,0.55)' }
   if (stats.ratio === 0) return { background: '#1d1416', border: '1px solid rgba(224,34,61,0.18)' }
@@ -51,7 +53,7 @@ export default function Heatmap({ state, today, selected, onSelect }) {
     const nextChange = weeks.findIndex((w, j) => j > i && parseKey(w[0].key).getMonth() !== m)
     const roomy = i > 0 || nextChange === -1 || nextChange - i >= 3
     if (changed && roomy && i - lastLabel >= 3) {
-      monthLabels[i] = parseKey(week[0].key).toLocaleDateString('pl-PL', { month: 'short' })
+      monthLabels[i] = parseKey(week[0].key).toLocaleDateString(locale(), { month: 'short' })
       lastLabel = i
     } else monthLabels[i] = ''
   })
@@ -129,10 +131,11 @@ export default function Heatmap({ state, today, selected, onSelect }) {
 }
 
 function describe({ stats, future }) {
-  if (future) return stats.scheduled.length ? `zaplanowano ${stats.scheduled.length} (${stats.plannedExp} EXP)` : 'nic nie zaplanowano'
-  if (stats.ratio === null) return 'wolne'
-  const base = `${stats.scheduledDone.length}/${stats.scheduled.length} wykonane · ${stats.exp} EXP`
-  return stats.perfect ? `${base} · pełny dzień` : base
+  if (future) return stats.scheduled.length ? t(`zaplanowano ${stats.scheduled.length} (${stats.plannedExp} EXP)`, `${stats.scheduled.length} planned (${stats.plannedExp} EXP)`) : t('nic nie zaplanowano', 'nothing planned')
+  if (stats.paused) return t('urlop', 'vacation')
+  if (stats.ratio === null) return t('wolne', 'rest day')
+  const base = `${stats.scheduledDone.length}/${stats.scheduled.length} ${t('wykonane', 'done')} · ${stats.exp} EXP`
+  return stats.perfect ? `${base} · ${t('pełny dzień', 'full day')}` : base
 }
 
 function Legend() {
@@ -140,23 +143,23 @@ function Legend() {
   return (
     <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] tracking-[0.15em] text-white/40 uppercase">
       <span className="flex items-center gap-1.5">
-        mniej
+        {t('mniej', 'less')}
         {steps.map((c) => (
           <span key={c} className="size-2.5 rounded-[2px]" style={{ background: c }} />
         ))}
-        więcej
+        {t('więcej', 'more')}
       </span>
       <span className="flex items-center gap-1.5">
         <span className="size-2.5 rounded-[2px] bg-[#e2b45a] shadow-[0_0_6px_rgba(226,180,90,0.6)]" />
-        pełny dzień
+        {t('pełny dzień', 'full day')}
       </span>
       <span className="flex items-center gap-1.5">
         <span className="size-2.5 rounded-[2px] bg-white/[0.035]" />
-        wolne
+        {t('wolne', 'rest day')}
       </span>
       <span className="flex items-center gap-1.5">
         <span className="size-2.5 rounded-[2px] border border-dashed border-white/20" />
-        w planie
+        {t('w planie', 'planned')}
       </span>
     </div>
   )

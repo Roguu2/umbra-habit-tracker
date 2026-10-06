@@ -3,13 +3,14 @@ import { AnimatePresence, motion } from 'framer-motion'
 import QrCode from './QrCode'
 import { formatCode, shareLink } from '../lib/sync'
 import { sfx } from '../lib/sfx'
+import { t } from '../lib/i18n'
 
 const STATUS = {
-  off: { label: 'Tylko to urządzenie', color: 'rgba(255,255,255,0.3)' },
-  syncing: { label: 'Synchronizuję…', color: '#e2b45a' },
-  ok: { label: 'Zsynchronizowano', color: '#5fd38a' },
-  offline: { label: 'Brak sieci — wyślę zmiany później', color: '#e2b45a' },
-  error: { label: 'Błąd połączenia — ponowię', color: '#ff4259' },
+  off: { label: t('Tylko to urządzenie', 'This device only'), color: 'rgba(255,255,255,0.3)' },
+  syncing: { label: t('Synchronizuję…', 'Syncing…'), color: '#e2b45a' },
+  ok: { label: t('Zsynchronizowano', 'Synced'), color: '#5fd38a' },
+  offline: { label: t('Brak sieci — wyślę zmiany później', 'Offline — changes will be sent later'), color: '#e2b45a' },
+  error: { label: t('Błąd połączenia — ponowię', 'Connection error — retrying'), color: '#ff4259' },
 }
 
 function StatusDot({ status }) {
@@ -31,7 +32,7 @@ export function SyncButton({ status, onClick }) {
         sfx.page()
         onClick()
       }}
-      aria-label={`Synchronizacja: ${STATUS[status].label}`}
+      aria-label={`${t('Synchronizacja', 'Sync')}: ${STATUS[status].label}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.9, duration: 0.6 }}
@@ -87,7 +88,7 @@ function PanelBody({ sync, initialCode, onClose }) {
       setCopied(what)
       setTimeout(() => setCopied(null), 1800)
     } catch {
-      setError('Nie udało się skopiować — przepisz kod ręcznie.')
+      setError(t('Nie udało się skopiować — przepisz kod ręcznie.', 'Copy failed — write the code down by hand.'))
     }
   }
 
@@ -103,7 +104,7 @@ function PanelBody({ sync, initialCode, onClose }) {
       <motion.div
         role="dialog"
         aria-modal="true"
-        aria-label="Synchronizacja"
+        aria-label={t('Synchronizacja', 'Sync')}
         initial={{ opacity: 0, y: 40, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 30, scale: 0.97 }}
@@ -115,8 +116,8 @@ function PanelBody({ sync, initialCode, onClose }) {
 
         <div className="relative space-y-6 p-6 sm:p-7">
           <header className="flex items-center justify-between">
-            <h2 className="font-display text-sm font-bold tracking-[0.3em] text-stone-200 uppercase">Synchronizacja</h2>
-            <button type="button" onClick={onClose} aria-label="Zamknij" className="cursor-pointer px-2 text-white/40 hover:text-white">
+            <h2 className="font-display text-sm font-bold tracking-[0.3em] text-stone-200 uppercase">{t('Synchronizacja', 'Sync')}</h2>
+            <button type="button" onClick={onClose} aria-label={t('Zamknij', 'Close')} className="cursor-pointer px-2 text-white/40 hover:text-white">
               ✕
             </button>
           </header>
@@ -133,22 +134,28 @@ function PanelBody({ sync, initialCode, onClose }) {
                   <QrCode text={shareLink(sync.code)} className="block size-44 sm:size-40" />
                 </div>
                 <div>
-                  <p className="mb-2 text-[10px] tracking-[0.3em] text-white/40 uppercase">Twój kod</p>
+                  <p className="mb-2 text-[10px] tracking-[0.3em] text-white/40 uppercase">{t('Twój kod', 'Your code')}</p>
                   <p className="font-display text-2xl font-bold tracking-[0.15em] text-gold-bright tabular-nums">{formatCode(sync.code)}</p>
                   <p className="mt-3 font-lore text-base text-white/50 italic">
-                    Zeskanuj kod QR aparatem telefonu albo wpisz kod na drugim urządzeniu — plany, postęp i EXP będą wszędzie te same.
+                    {t(
+                      'Zeskanuj kod QR aparatem telefonu albo wpisz kod na drugim urządzeniu — plany, postęp i EXP będą wszędzie te same.',
+                      'Scan the QR code with your phone camera or enter the code on another device — plans, progress and EXP will be the same everywhere.',
+                    )}
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <GhostButton onClick={() => copy('code', formatCode(sync.code))}>{copied === 'code' ? 'Skopiowano ✓' : 'Kopiuj kod'}</GhostButton>
-                <GhostButton onClick={() => copy('link', shareLink(sync.code))}>{copied === 'link' ? 'Skopiowano ✓' : 'Kopiuj link'}</GhostButton>
-                <GhostButton onClick={sync.syncNow}>Synchronizuj teraz</GhostButton>
+                <GhostButton onClick={() => copy('code', formatCode(sync.code))}>{copied === 'code' ? t('Skopiowano ✓', 'Copied ✓') : t('Kopiuj kod', 'Copy code')}</GhostButton>
+                <GhostButton onClick={() => copy('link', shareLink(sync.code))}>{copied === 'link' ? t('Skopiowano ✓', 'Copied ✓') : t('Kopiuj link', 'Copy link')}</GhostButton>
+                <GhostButton onClick={sync.syncNow}>{t('Synchronizuj teraz', 'Sync now')}</GhostButton>
               </div>
 
               <p className="text-[11px] leading-relaxed text-white/35">
-                Kod działa jak hasło — każdy, kto go zna, widzi i może zmieniać Twoje dane. Nie udostępniaj go innym.
+                {t(
+                  'Kod działa jak hasło — każdy, kto go zna, widzi i może zmieniać Twoje dane. Nie udostępniaj go innym.',
+                  'The code works like a password — anyone who knows it can see and change your data. Do not share it.',
+                )}
               </p>
 
               <footer className="flex justify-start pt-1">
@@ -167,18 +174,21 @@ function PanelBody({ sync, initialCode, onClose }) {
                   }}
                   className="cursor-pointer text-[11px] tracking-[0.2em] text-blood-bright/70 uppercase hover:text-blood-bright"
                 >
-                  {confirmLeave ? 'Na pewno odłączyć? (dane zostaną na tym urządzeniu)' : 'Odłącz to urządzenie'}
+                  {confirmLeave ? t('Na pewno odłączyć? (dane zostaną na tym urządzeniu)', 'Really disconnect? (data stays on this device)') : t('Odłącz to urządzenie', 'Disconnect this device')}
                 </button>
               </footer>
             </>
           ) : (
             <>
               <p className="font-lore text-base text-white/55 italic">
-                Połącz komputer i telefon — plany, odhaczone zadania, poziom i osiągnięcia będą wszędzie takie same.
+                {t(
+                  'Połącz komputer i telefon — plany, odhaczone zadania, poziom i osiągnięcia będą wszędzie takie same.',
+                  'Connect your computer and phone — plans, completed quests, level and achievements will be the same everywhere.',
+                )}
               </p>
 
               <section>
-                <p className="mb-2 text-[10px] tracking-[0.3em] text-white/40 uppercase">To pierwsze urządzenie</p>
+                <p className="mb-2 text-[10px] tracking-[0.3em] text-white/40 uppercase">{t('To pierwsze urządzenie', 'This is the first device')}</p>
                 <motion.button
                   type="button"
                   disabled={pending}
@@ -187,7 +197,7 @@ function PanelBody({ sync, initialCode, onClose }) {
                   whileTap={{ scale: 0.97 }}
                   className="hud-cut-sm cursor-pointer bg-gradient-to-r from-blood-deep via-blood to-blood-deep px-6 py-3 font-display text-xs font-bold tracking-[0.3em] text-stone-100 uppercase shadow-[0_0_24px_rgba(195,20,47,0.35)] disabled:cursor-wait disabled:opacity-50"
                 >
-                  Utwórz kod
+                  {t('Utwórz kod', 'Create code')}
                 </motion.button>
               </section>
 
@@ -197,7 +207,7 @@ function PanelBody({ sync, initialCode, onClose }) {
                   run(() => sync.joinCode(input))
                 }}
               >
-                <p className="mb-2 text-[10px] tracking-[0.3em] text-white/40 uppercase">Masz już kod z innego urządzenia?</p>
+                <p className="mb-2 text-[10px] tracking-[0.3em] text-white/40 uppercase">{t('Masz już kod z innego urządzenia?', 'Already have a code from another device?')}</p>
                 <div className="flex gap-2">
                   <input
                     value={input}
@@ -207,14 +217,14 @@ function PanelBody({ sync, initialCode, onClose }) {
                     autoCapitalize="characters"
                     autoComplete="off"
                     spellCheck={false}
-                    aria-label="Kod synchronizacji"
+                    aria-label={t('Kod synchronizacji', 'Sync code')}
                     className="min-w-0 flex-1 border-b border-white/15 bg-transparent pb-2 font-display text-lg tracking-[0.15em] text-stone-100 outline-none transition-colors placeholder:text-white/20 focus:border-gold/70"
                   />
                   <GhostButton type="submit" disabled={pending || !input.trim()}>
-                    Połącz
+                    {t('Połącz', 'Connect')}
                   </GhostButton>
                 </div>
-                <p className="mt-2 text-[11px] text-white/35">Dane z tego urządzenia zostaną zastąpione danymi z kodu.</p>
+                <p className="mt-2 text-[11px] text-white/35">{t('Dane z tego urządzenia zostaną zastąpione danymi z kodu.', 'Data on this device will be replaced with the data from the code.')}</p>
               </form>
             </>
           )}

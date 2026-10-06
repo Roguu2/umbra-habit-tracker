@@ -3,31 +3,32 @@ import { AnimatePresence, motion } from 'framer-motion'
 import RuneSeal from './RuneSeal'
 import { DAY_SHORT, WEEK_ORDER } from '../lib/game'
 import { sfx } from '../lib/sfx'
+import { t } from '../lib/i18n'
 
 const STEPS = [
   {
-    title: 'Witaj w Umbrze',
-    text: 'Planuj dzień i buduj nawyki. Każde wykonane zadanie daje EXP, a twoja postać zdobywa kolejne poziomy.',
+    title: t('Witaj w Umbrze', 'Welcome to Umbra'),
+    text: t('Planuj dzień i buduj nawyki. Każde wykonane zadanie daje EXP, a twoja postać zdobywa kolejne poziomy.', 'Plan your day and build habits. Every completed quest grants EXP, and your character climbs to new levels.'),
     Demo: LevelDemo,
   },
   {
-    title: 'Wpisz, co chcesz zrobić',
-    text: 'W zakładce Dziś wpisz zadanie i naciśnij Enter. Godzinę możesz dodać, ale nie musisz.',
+    title: t('Wpisz, co chcesz zrobić', 'Write down what you want to do'),
+    text: t('W zakładce Dziś wpisz zadanie i naciśnij Enter. Godzinę możesz dodać, ale nie musisz.', "On the Today tab, type a quest and press Enter. You can add a time, but you don't have to."),
     Demo: TypingDemo,
   },
   {
-    title: 'Odhacz runę',
-    text: 'Gdy wykonasz zadanie, kliknij runę obok niego. Kategoria i nagroda dobierają się same z nazwy.',
+    title: t('Odhacz runę', 'Mark the rune'),
+    text: t('Gdy wykonasz zadanie, kliknij runę obok niego. Kategoria i nagroda dobierają się same z nazwy.', 'When you finish a quest, click the rune beside it. The category and reward are chosen automatically from its name.'),
     Demo: SealDemo,
   },
   {
-    title: 'Zaplanuj tydzień',
-    text: 'Zadanie może być jednorazowe, codzienne albo na wybrane dni. Do treningu dodaj kroki, np. listę ćwiczeń.',
+    title: t('Zaplanuj tydzień', 'Plan your week'),
+    text: t('Zadanie może być jednorazowe, codzienne albo na wybrane dni. Do treningu dodaj kroki, np. listę ćwiczeń.', 'A quest can be one-time, daily or set for chosen days. Add steps to a workout, e.g. a list of exercises.'),
     Demo: WeekDemo,
   },
   {
-    title: 'Jak masz na imię?',
-    text: 'Postępy, kalendarz i osiągnięcia znajdziesz w zakładce Postępy. Ten poradnik otworzysz ponownie na dole strony.',
+    title: t('Jak masz na imię?', 'What is your name?'),
+    text: t('Postępy, kalendarz i osiągnięcia znajdziesz w zakładce Postępy. Ten poradnik otworzysz ponownie na dole strony.', "You'll find your progress, calendar and achievements in the Progress tab. You can reopen this guide at the bottom of the page."),
     Demo: null,
   },
 ]
@@ -38,7 +39,7 @@ export default function Onboarding({ open, defaultName, onFinish }) {
 
 function Tour({ defaultName, onFinish }) {
   const [[step, dir], setStep] = useState([0, 1])
-  const [name, setName] = useState(defaultName === 'Wędrowiec' ? '' : defaultName)
+  const [name, setName] = useState(defaultName === t('Wędrowiec', 'Wanderer') ? '' : defaultName)
   const last = step === STEPS.length - 1
   const { title, text, Demo } = STEPS[step]
 
@@ -93,7 +94,7 @@ function Tour({ defaultName, onFinish }) {
         <div className="relative p-6 sm:p-7">
           {/* postęp */}
           <div className="flex items-center justify-between">
-            <div className="flex gap-1.5" aria-label={`Krok ${step + 1} z ${STEPS.length}`}>
+            <div className="flex gap-1.5" aria-label={t(`Krok ${step + 1} z ${STEPS.length}`, `Step ${step + 1} of ${STEPS.length}`)}>
               {STEPS.map((_, i) => (
                 <motion.span
                   key={i}
@@ -109,7 +110,7 @@ function Tour({ defaultName, onFinish }) {
                 onClick={() => onFinish('')}
                 className="cursor-pointer text-[11px] tracking-[0.2em] text-white/40 uppercase hover:text-white"
               >
-                Pomiń
+                {t('Pomiń', 'Skip')}
               </button>
             )}
           </div>
@@ -133,7 +134,7 @@ function Tour({ defaultName, onFinish }) {
                   )}
                 </div>
                 <p className="mt-6 text-[10px] tracking-[0.35em] text-gold/70 uppercase">
-                  Krok {step + 1} / {STEPS.length}
+                  {t('Krok', 'Step')} {step + 1} / {STEPS.length}
                 </p>
                 <h2 id="tour-title" className="mt-2 font-display text-2xl font-black text-stone-100">
                   {title}
@@ -151,7 +152,7 @@ function Tour({ defaultName, onFinish }) {
               disabled={step === 0}
               className="cursor-pointer px-2 py-2 text-[11px] tracking-[0.2em] text-white/50 uppercase hover:text-white disabled:invisible"
             >
-              ← Wstecz
+              ← {t('Wstecz', 'Back')}
             </button>
             <motion.button
               type="button"
@@ -160,7 +161,7 @@ function Tour({ defaultName, onFinish }) {
               whileTap={{ scale: 0.96 }}
               className="hud-cut-sm cursor-pointer bg-gradient-to-r from-blood-deep via-blood to-blood-deep px-8 py-3 font-display text-xs font-bold tracking-[0.3em] text-stone-100 uppercase shadow-[0_0_24px_rgba(195,20,47,0.35)]"
             >
-              {last ? 'Zaczynamy' : 'Dalej'}
+              {last ? t('Zaczynamy', "Let's begin") : t('Dalej', 'Next')}
             </motion.button>
           </div>
         </div>
@@ -178,11 +179,11 @@ function NameField({ value, onChange, onSubmit }) {
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
         maxLength={28}
-        placeholder="Wędrowiec"
-        aria-label="Imię postaci"
+        placeholder={t('Wędrowiec', 'Wanderer')}
+        aria-label={t('Imię postaci', 'Character name')}
         className="w-full border-b border-white/20 bg-transparent pb-2 text-center font-display text-2xl text-stone-100 outline-none placeholder:text-white/25 focus:border-gold"
       />
-      <p className="mt-3 text-[11px] text-white/35">Możesz to zmienić później, klikając imię u góry.</p>
+      <p className="mt-3 text-[11px] text-white/35">{t('Możesz to zmienić później, klikając imię u góry.', 'You can change it later by clicking the name at the top.')}</p>
     </div>
   )
 }
@@ -221,7 +222,7 @@ function LevelDemo() {
         </AnimatePresence>
       </div>
       <div className="flex-1">
-        <p className="text-[10px] tracking-[0.3em] text-white/40 uppercase">Doświadczenie</p>
+        <p className="text-[10px] tracking-[0.3em] text-white/40 uppercase">{t('Doświadczenie', 'Experience')}</p>
         <div className="mt-2 h-2.5 overflow-hidden bg-black/60 ring-1 ring-white/10">
           <motion.div
             key={phase}
@@ -237,7 +238,7 @@ function LevelDemo() {
 }
 
 function TypingDemo() {
-  const full = 'Trening nóg'
+  const full = t('Trening nóg', 'Leg day')
   const [typed, setTyped] = useState('')
   const [added, setAdded] = useState(false)
 
@@ -281,8 +282,8 @@ function TypingDemo() {
             className="flex items-center gap-3 bg-white/[0.04] px-3 py-2 ring-1 ring-white/10"
           >
             <span className="font-display text-xs font-bold tabular-nums text-stone-200">18:00</span>
-            <span className="font-display text-sm font-bold text-stone-100">Trening nóg</span>
-            <span className="ml-auto text-[10px] tracking-widest text-white/40 uppercase">Siła</span>
+            <span className="font-display text-sm font-bold text-stone-100">{t('Trening nóg', 'Leg day')}</span>
+            <span className="ml-auto text-[10px] tracking-widest text-white/40 uppercase">{t('Siła', 'Strength')}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -304,7 +305,7 @@ function SealDemo() {
         <RuneSeal rune={0} tier="blood" done={done} burstKey={done ? burst : 0} onToggle={() => {}} label="" />
       </div>
       <div className="relative">
-        <p className={`font-display text-base font-bold transition-colors duration-500 ${done ? 'text-white/40' : 'text-stone-100'}`}>Trening nóg</p>
+        <p className={`font-display text-base font-bold transition-colors duration-500 ${done ? 'text-white/40' : 'text-stone-100'}`}>{t('Trening nóg', 'Leg day')}</p>
         <p className="text-[11px] tracking-widest text-blood-bright uppercase">+40 EXP</p>
         <AnimatePresence>
           {done && (
@@ -327,7 +328,7 @@ function SealDemo() {
 function WeekDemo() {
   const lit = useLoop(9, 420)
   const pattern = [1, 2, 4, 5] // Pn Wt Cz Pt
-  const steps = ['Przysiad 4×8', 'Martwy ciąg 3×6', 'Wykroki 3×10']
+  const steps = [t('Przysiad 4×8', 'Squat 4×8'), t('Martwy ciąg 3×6', 'Deadlift 3×6'), t('Wykroki 3×10', 'Lunges 3×10')]
 
   return (
     <div className="w-full max-w-[300px] space-y-4 px-4">

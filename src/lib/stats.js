@@ -1,7 +1,7 @@
 import { dayKey, shiftKey } from './game'
-import { isScheduledOn } from './schedule.js'
+import { existsOn, isFlexible, isPaused, isScheduledOn, weekCount, weekKeys } from './schedule.js'
 
-export { isScheduledOn }
+export { isFlexible, isPaused, isScheduledOn, weekCount }
 
 export const activeQuests = (state) => state.quests.filter((q) => !q.archivedAt)
 
@@ -36,17 +36,22 @@ export function dayStats(state, key) {
   const doneSet = new Set(doneIds)
   const scheduledIds = new Set(scheduled.map((q) => q.id))
   const scheduledDone = scheduled.filter((q) => doneSet.has(q.id))
+  const paused = isPaused(state, key)
 
   return {
     key,
     scheduled,
     scheduledDone,
-    extra: doneIds.filter((id) => !scheduledIds.has(id)).map((id) => byId[id]),
+    // nawyki "X razy w tygodniu" istniejące tego dnia — nie są wymagane, więc nie wpływają na pełny dzień
+    flexible: state.quests.filter((q) => isFlexible(q) && existsOn(q, key)).sort(byTime),
+    flexDone: doneIds.filter((id) => isFlexible(byId[id])).map((id) => byId[id]),
+    extra: doneIds.filter((id) => !scheduledIds.has(id) && !isFlexible(byId[id])).map((id) => byId[id]),
     exp: doneIds.reduce((sum, id) => sum + byId[id].exp, 0),
     plannedExp: scheduled.reduce((sum, q) => sum + q.exp, 0),
-    // null = nic nie zaplanowano i nic nie zrobiono
-    ratio: scheduled.length ? scheduledDone.length / scheduled.length : doneIds.length ? 1 : null,
-    perfect: scheduled.length > 0 && scheduledDone.length === scheduled.length,
+    paused,
+    // null = dzień się nie liczy (nic nie zaplanowano i nic nie zrobiono, albo urlop)
+    ratio: paused ? null : scheduled.length ? scheduledDone.length / scheduled.length : doneIds.length ? 1 : null,
+    perfect: !paused && scheduled.length > 0 && scheduledDone.length === scheduled.length,
   }
 }
 
@@ -63,14 +68,17 @@ export function completionRate(state, days, today = dayKey()) {
   return ratios.length ? ratios.reduce((a, b) => a + b, 0) / ratios.length : null
 }
 
-// Seria liczy kolejne zaplanowane dni z wykonaniem; dni wolne od zadania jej nie przerywają.
+// Seria liczy kolejne zaplanowane dni z wykonaniem; dni wolne od zadania i dni urlopu jej nie przerywają.
+// Dla nawyków "X razy w tygodniu" seria to kolejne tygodnie z osiągniętym celem (unit: 'week').
 export function questStreaks(state, quest, today = dayKey()) {
+  if (isFlexible(quest)) return weekStreaks(state, quest, today)
   const done = (k) => (state.history[k] ?? []).includes(quest.id)
+  const required = (k) => isScheduledOn(quest, k) && !isPaused(state, k)
   const end = quest.archivedAt ? shiftKey(quest.archivedAt, -1) : today
 
   let current = 0
   for (let k = end; k >= quest.createdAt; k = shiftKey(k, -1)) {
-    if (isScheduledOn(quest, k)) {
+    if (required(k)) {
       if (done(k)) current++
       else if (k !== today) break
     } else if (done(k)) current++
@@ -79,13 +87,40 @@ export function questStreaks(state, quest, today = dayKey()) {
   let best = 0
   let run = 0
   for (const k of keysBetween(quest.createdAt, end)) {
-    if (isScheduledOn(quest, k)) {
+    if (required(k)) {
       if (done(k)) run++
       else if (k !== today) run = 0
     } else if (done(k)) run++
     best = Math.max(best, run)
   }
-  return { current, best }
+  return { current, best, unit: 'day' }
+}
+
+function weekStreaks(state, quest, today) {
+  const end = quest.archivedAt ? shiftKey(quest.archivedAt, -1) : today
+  const weeks = []
+  for (let k = weekKeys(quest.createdAt)[0]; k <= end; k = shiftKey(k, 7)) {
+    const keys = weekKeys(k)
+    weeks.push({
+      met: weekCount(state, quest, keys[6]) >= quest.perWeek,
+      // tydzień trwa albo był w nim urlop — niespełniony cel nie przerywa serii
+      lenient: keys[6] >= today || keys.some((d) => isPaused(state, d)),
+    })
+  }
+
+  let current = 0
+  for (let i = weeks.length - 1; i >= 0; i--) {
+    if (weeks[i].met) current++
+    else if (!weeks[i].lenient) break
+  }
+  let best = 0
+  let run = 0
+  for (const w of weeks) {
+    if (w.met) run++
+    else if (!w.lenient) run = 0
+    best = Math.max(best, run)
+  }
+  return { current, best, unit: 'week' }
 }
 
 export function perfectDayStreak(state, today = dayKey()) {

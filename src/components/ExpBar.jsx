@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { animate, motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
+import { t } from '../lib/i18n'
 
 const FILL_SPRING = { type: 'spring', stiffness: 70, damping: 18, mass: 1 }
 
@@ -45,7 +46,7 @@ export default function ExpBar({ level, current, needed }) {
   return (
     <div>
       <div className="mb-2 flex items-baseline justify-between gap-4 whitespace-nowrap font-display text-[11px] tracking-[0.3em] text-white/40 uppercase">
-        <span>Doświadczenie</span>
+        <span>{t('Doświadczenie', 'Experience')}</span>
         <span className="tabular-nums tracking-[0.15em]">
           <motion.span className="text-gold-bright">{expText}</motion.span>
           <span className="text-white/30"> / {needed}</span>

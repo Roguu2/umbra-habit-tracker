@@ -3,10 +3,27 @@ import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion
 import RuneSeal from './RuneSeal'
 import { CATEGORIES, TIERS } from '../lib/game'
 import { sfx } from '../lib/sfx'
+import { plural, t } from '../lib/i18n'
 
 // reorder: { onDrop, onMove } — włącza przeciąganie (tylko dla zadań bez godziny)
 // index: pozycja na liście — opóźnia wejście karty (efekt kaskady)
-export default function QuestCard({ quest, done, checkedSteps = [], streak, isNext, index = 0, onToggle, onToggleStep, onEdit, reorder }) {
+// count / onAddCount — licznik (np. szklanki wody); weekDone — postęp nawyku "X razy w tygodniu"
+export default function QuestCard({
+  quest,
+  done,
+  checkedSteps = [],
+  streak,
+  streakUnit = 'day',
+  count = 0,
+  onAddCount,
+  weekDone = null,
+  isNext,
+  index = 0,
+  onToggle,
+  onToggleStep,
+  onEdit,
+  reorder,
+}) {
   const dragControls = useDragControls()
   const [burstKey, setBurstKey] = useState(0)
   const [open, setOpen] = useState(false)
@@ -96,8 +113,8 @@ export default function QuestCard({ quest, done, checkedSteps = [], streak, isNe
           ) : reorder ? (
             <button
               type="button"
-              aria-label={`Zmień kolejność: ${quest.name} (przeciągnij lub użyj strzałek)`}
-              title="Przeciągnij, aby zmienić kolejność"
+              aria-label={t(`Zmień kolejność: ${quest.name} (przeciągnij lub użyj strzałek)`, `Reorder: ${quest.name} (drag or use the arrow keys)`)}
+              title={t('Przeciągnij, aby zmienić kolejność', 'Drag to reorder')}
               onPointerDown={(e) => {
                 e.preventDefault()
                 sfx.tick()
@@ -128,7 +145,11 @@ export default function QuestCard({ quest, done, checkedSteps = [], streak, isNe
           done={done}
           burstKey={burstKey}
           onToggle={() => onToggle(quest.id)}
-          label={`${quest.name}: oznacz jako ${done ? 'niewykonane' : 'wykonane'}`}
+          label={
+            quest.kind === 'avoid'
+              ? t(`${quest.name}: ${done ? 'cofnij' : 'wytrwałem dziś'}`, `${quest.name}: ${done ? 'undo' : 'I held out today'}`)
+              : t(`${quest.name}: oznacz jako ${done ? 'niewykonane' : 'wykonane'}`, `${quest.name}: mark as ${done ? 'not done' : 'done'}`)
+          }
         />
 
         <motion.div
@@ -156,21 +177,59 @@ export default function QuestCard({ quest, done, checkedSteps = [], streak, isNe
                 className="px-1.5 py-px text-[9px] font-bold tracking-[0.2em]"
                 style={{ color: c.bright, boxShadow: `inset 0 0 0 1px ${c.main}` }}
               >
-                Następne
+                {t('Następne', 'Next')}
               </motion.span>
+            )}
+            {quest.kind === 'avoid' && (
+              <span className="px-1.5 py-px text-[9px] font-bold tracking-[0.2em] text-white/60 ring-1 ring-white/20">⊘ {t('Unikaj', 'Avoid')}</span>
             )}
             <span>{CATEGORIES[quest.attr]?.label}</span>
             <span style={{ color: c.bright }}>+{quest.exp} EXP</span>
-            {streak > 0 && <span title="Seria wykonań">🔥 {streak}</span>}
+            {quest.perWeek && weekDone !== null && (
+              <span className={weekDone >= quest.perWeek ? 'text-gold-bright' : 'text-white/55'}>
+                {Math.min(weekDone, quest.perWeek)}/{quest.perWeek} {t('w tym tyg.', 'this week')}
+              </span>
+            )}
+            {streak > 0 && (
+              <span title={t('Seria wykonań', 'Completion streak')}>
+                🔥 {streak}
+                {streakUnit === 'week' && ` ${t('tyg.', 'wk')}`}
+              </span>
+            )}
             {hasSteps && (
               <span className="flex items-center gap-1 text-white/55">
-                {checkedSteps.length}/{quest.steps.length} kroków
+                {checkedSteps.length}/{quest.steps.length} {plural(quest.steps.length, ['krok', 'kroki', 'kroków'], ['step', 'steps'])}
                 <motion.svg viewBox="0 0 12 12" className="size-2.5" animate={{ rotate: open ? 90 : 0 }}>
                   <path d="M4 2l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.6" />
                 </motion.svg>
               </span>
             )}
           </div>
+          {quest.kind === 'count' && onAddCount && (
+            <div className="mt-2 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <CountButton label={t('Odejmij', 'Decrease')} disabled={count <= 0} onClick={() => onAddCount(quest.id, -1)}>
+                −
+              </CountButton>
+              <span className="min-w-[4.5rem] text-center font-display text-sm font-bold tabular-nums text-stone-100">
+                {count}/{quest.target}
+                {quest.unit && <span className="ml-1 font-body text-[11px] font-normal text-white/45">{quest.unit}</span>}
+              </span>
+              <CountButton label={t('Dodaj', 'Increase')} disabled={count >= 99} onClick={() => onAddCount(quest.id, 1)}>
+                +
+              </CountButton>
+            </div>
+          )}
+          {quest.kind === 'count' && onAddCount && (
+            <div className="mt-2 h-1 w-full max-w-48 overflow-hidden rounded-full bg-white/[0.06]">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: c.main }}
+                initial={false}
+                animate={{ width: `${Math.min(1, count / quest.target) * 100}%` }}
+                transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+              />
+            </div>
+          )}
         </motion.div>
 
         {onEdit && (
@@ -182,7 +241,7 @@ export default function QuestCard({ quest, done, checkedSteps = [], streak, isNe
             }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            aria-label={`Edytuj: ${quest.name}`}
+            aria-label={t(`Edytuj: ${quest.name}`, `Edit: ${quest.name}`)}
             className="grid size-8 shrink-0 cursor-pointer place-items-center text-white/30 transition-colors hover:text-gold-bright sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
           >
             <svg viewBox="0 0 16 16" className="size-4" aria-hidden>
@@ -251,5 +310,23 @@ export default function QuestCard({ quest, done, checkedSteps = [], streak, isNe
         )}
       </AnimatePresence>
     </Outer>
+  )
+}
+
+function CountButton({ label, onClick, disabled, children }) {
+  return (
+    <motion.button
+      type="button"
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => {
+        sfx.tick()
+        onClick()
+      }}
+      whileTap={{ scale: 0.85 }}
+      className="grid size-7 cursor-pointer place-items-center border border-white/15 font-display text-base leading-none text-white/70 transition-colors hover:border-gold/60 hover:text-gold-bright disabled:cursor-default disabled:opacity-30"
+    >
+      {children}
+    </motion.button>
   )
 }
