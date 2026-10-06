@@ -23,7 +23,12 @@ export function usePush(sync) {
       await fn()
       return true
     } catch (err) {
-      setError(err.message || 'Coś poszło nie tak. Spróbuj ponownie.')
+      // Brave domyślnie wyłącza usługę push — subskrypcja kończy się błędem "push service error"
+      if (navigator.brave && /push service|registration failed/i.test(err.message ?? '')) {
+        setError(
+          'Brave blokuje powiadomienia push. Wejdź w brave://settings/privacy, włącz „Use Google services for push messaging”, uruchom Brave ponownie i spróbuj jeszcze raz.',
+        )
+      } else setError(err.message || 'Coś poszło nie tak. Spróbuj ponownie.')
       return false
     } finally {
       setBusy(false)
