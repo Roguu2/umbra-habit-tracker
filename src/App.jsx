@@ -6,6 +6,7 @@ import NavTabs from './components/NavTabs'
 import LevelUpModal from './components/LevelUpModal'
 import AchievementToast from './components/AchievementToast'
 import SoundToggle from './components/SoundToggle'
+import SyncPanel, { SyncButton } from './components/SyncPanel'
 import QuestEditor from './components/QuestEditor'
 import Onboarding from './components/Onboarding'
 import TodayView from './views/TodayView'
@@ -23,6 +24,14 @@ export default function App() {
   const [planFocus, setPlanFocus] = useState(null)
   const [editing, setEditing] = useState(null)
   const [tourOpen, setTourOpen] = useState(false)
+
+  // link ?sync=KOD z innego urządzenia otwiera okno synchronizacji z wpisanym kodem
+  const [linkCode] = useState(() => {
+    const code = new URLSearchParams(location.search).get('sync')
+    if (code) history.replaceState(null, '', location.pathname)
+    return code
+  })
+  const [syncOpen, setSyncOpen] = useState(Boolean(linkCode))
 
   const todayStats = dayStats(state, today)
 
@@ -110,8 +119,15 @@ export default function App() {
       </div>
 
       <SoundToggle />
+      <SyncButton status={game.sync.status} onClick={() => setSyncOpen(true)} />
+      <SyncPanel
+        open={syncOpen}
+        sync={game.sync}
+        initialCode={game.sync.code ? null : linkCode}
+        onClose={() => setSyncOpen(false)}
+      />
       <Onboarding
-        open={!state.onboarded || tourOpen}
+        open={(!state.onboarded && !syncOpen) || tourOpen}
         defaultName={state.profile.name}
         onFinish={(name) => {
           actions.finishOnboarding(name)

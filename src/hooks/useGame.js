@@ -3,6 +3,7 @@ import { autoProps, createInitialState, dayKey, levelFromExp, migrateState, pars
 import { lifetimeStats, weekPerfectDays } from '../lib/stats'
 import { ACHIEVEMENTS } from '../lib/achievements'
 import { sfx } from '../lib/sfx'
+import { useSync } from './useSync'
 
 const STORAGE_KEY = 'umbra-habit-tracker:v1'
 
@@ -46,6 +47,7 @@ function setSteps(s, questId, key, indices) {
 export function useGame() {
   const [state, setState] = useState(load)
   const today = useToday()
+  const sync = useSync(state, setState)
 
   useEffect(() => {
     try {
@@ -170,6 +172,11 @@ export function useGame() {
 
   const [toasts, setToasts] = useState([])
 
+  // zdobyte już na innym urządzeniu (przyszły z synchronizacją) nie są ogłaszane ponownie
+  useEffect(() => {
+    Object.keys(state.achievements).forEach((id) => announced.current.add(id))
+  }, [state.achievements])
+
   useEffect(() => {
     const fresh = ACHIEVEMENTS.filter((a) => {
       const [value, goal] = a.progress(achievementCtx)
@@ -198,6 +205,7 @@ export function useGame() {
     closeLevelUp,
     toast: toasts[0] ?? null,
     dismissToast,
+    sync,
     actions: { toggleQuest, toggleStep, saveQuest, removeQuest, reorderQuests, renameHero, finishOnboarding, reset },
   }
 }
