@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ALL_DAYS, autoProps, createInitialState, dayKey, levelFromExp, migrateState, shiftKey, totalExpOf } from '../lib/game'
 import { isPaused, lifetimeStats } from '../lib/stats'
 import { ACHIEVEMENTS } from '../lib/achievements'
+import { shieldPauses } from '../lib/shields'
 import { sfx } from '../lib/sfx'
 import { useSync } from './useSync'
 
@@ -213,6 +214,11 @@ export function useGame() {
     [today],
   )
 
+  // tarcze passy: wskazane dni przestają się liczyć (patrz lib/shields.js)
+  const spendShields = useCallback((days) => {
+    setState((s) => ({ ...s, pauses: [...(s.pauses ?? []), ...shieldPauses(days)] }))
+  }, [])
+
   const announced = useRef(new Set(Object.keys(state.achievements)))
   const reset = useCallback(() => {
     announced.current = new Set()
@@ -300,6 +306,7 @@ export function useGame() {
       setAura,
       finishOnboarding,
       setVacation,
+      spendShields,
       reset,
       importState,
     },

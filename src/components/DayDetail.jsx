@@ -53,7 +53,13 @@ export default function DayDetail({ state, today, dayKeyValue, actions }) {
         )}
 
         <ul className="mt-5 space-y-1">
-          {s.paused && <li className="pb-1 text-[11px] tracking-[0.15em] text-gold/80 uppercase">{t('Urlop — dzień się nie liczy', "Vacation — this day doesn't count")}</li>}
+          {s.paused && (
+            <li className="pb-1 text-[11px] tracking-[0.15em] text-gold/80 uppercase">
+              {s.shielded
+                ? t('Tarcza passy — dzień się nie liczy', "Streak shield — this day doesn't count")
+                : t('Urlop — dzień się nie liczy', "Vacation — this day doesn't count")}
+            </li>
+          )}
           {rows.length === 0 && <li className="font-lore text-base text-white/35 italic">{t('Wolny dzień.', 'A free day.')}</li>}
           {rows.map(({ q, kind }) => (
             <li key={q.id}>

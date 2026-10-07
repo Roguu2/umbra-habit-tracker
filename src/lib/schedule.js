@@ -22,8 +22,10 @@ export function isScheduledOn(quest, key) {
   return quest.days.includes(toDate(key).getDay())
 }
 
-// tryb urlopu: dni w przerwie nie liczą się do pass ani skuteczności
-export const isPaused = (state, key) => (state.pauses ?? []).some((p) => key >= p.from && (!p.to || key <= p.to))
+// tryb urlopu: dni w przerwie nie liczą się do pass ani skuteczności.
+// Tarcza passy to jednodniowa przerwa z flagą shield (lib/shields.js) — działa tak samo.
+export const pauseOn = (state, key) => (state.pauses ?? []).find((p) => key >= p.from && (!p.to || key <= p.to)) ?? null
+export const isPaused = (state, key) => pauseOn(state, key) !== null
 
 // klucze dni tygodnia (pn–nd), do którego należy dany dzień
 export function weekKeys(key) {

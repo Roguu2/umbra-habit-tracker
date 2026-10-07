@@ -4,9 +4,10 @@ import QuestCard from '../components/QuestCard'
 import QuickAdd from '../components/QuickAdd'
 import WeakSpotHint from '../components/WeakSpotHint'
 import RaiseBar from '../components/RaiseBar'
-import { MiniRune, Panel } from '../components/ui'
+import { MiniRune, Panel, ShieldIcon } from '../components/ui'
 import { formatDay, partOfDay, shiftKey } from '../lib/game'
 import { byTime, dayStats, perfectDayStreak, questStreaks, weekCount } from '../lib/stats'
+import { rescueOffer, shieldsEarned, shieldsLeft } from '../lib/shields'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
 
@@ -144,7 +145,7 @@ export default function TodayView({ game, onEdit, onOpenPlan, onOpenQuiz }) {
       </section>
 
       <aside className="space-y-8 lg:mt-12">
-        <Streak state={state} today={today} />
+        <Streak state={state} today={today} maxLevel={game.maxLevel} onShield={actions.spendShields} />
         <Tomorrow state={state} today={today} onOpenPlan={onOpenPlan} />
         <RaiseBar state={state} today={today} onRaise={actions.raiseBar} />
         <WeakSpotHint state={state} today={today} onAdd={actions.saveQuest} panel />
@@ -191,10 +192,51 @@ function ReorderableList({ items, onCommit, children }) {
   )
 }
 
-function Streak({ state, today }) {
+function Streak({ state, today, maxLevel, onShield }) {
   const streak = perfectDayStreak(state, today)
+  const shields = shieldsLeft(state, maxLevel)
+  const offer = rescueOffer(state, today, maxLevel)
+
   return (
-    <Panel title={t('Passa', 'Streak')} subtitle={t('pełne dni z rzędu', 'full days in a row')} delay={0.15}>
+    <Panel
+      title={t('Passa', 'Streak')}
+      subtitle={t('pełne dni z rzędu', 'full days in a row')}
+      delay={0.15}
+      action={
+        shieldsEarned(maxLevel) > 0 && (
+          <span title={t('Tarcze passy — co 5 poziomów', 'Streak shields — every 5 levels')} className="flex items-center gap-1.5 text-[11px] tabular-nums text-white/50">
+            <ShieldIcon className="size-4" /> {shields}
+          </span>
+        )
+      }
+    >
+      {offer && (
+        <div className="mb-4 border-l-2 border-gold/60 pl-3">
+          <p className="text-[12px] leading-relaxed text-white/60">
+            {t(
+              <>
+                Passa <b className="text-stone-100">{offer.streak}</b> dni przepadła. Tarcza może ją ocalić.
+              </>,
+              <>
+                Your <b className="text-stone-100">{offer.streak}</b>-day streak was broken. A shield can save it.
+              </>,
+            )}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              sfx.forge()
+              onShield(offer.days)
+            }}
+            className="mt-2 flex cursor-pointer items-center gap-1.5 text-[11px] font-bold tracking-[0.2em] text-gold-bright uppercase hover:text-white"
+          >
+            <ShieldIcon className="size-4" />
+            {offer.days.length === 1
+              ? t('Użyj tarczy', 'Use a shield')
+              : t(`Użyj ${offer.days.length} tarcz`, `Use ${offer.days.length} shields`)}
+          </button>
+        </div>
+      )}
       <div className="flex items-center gap-5">
         <motion.span
           key={streak}

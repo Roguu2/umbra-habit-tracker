@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Panel } from './ui'
+import { Panel, ShieldIcon } from './ui'
 import { expToReach } from '../lib/game'
 import { AURAS, REWARDS, SIGILS, isUnlocked, nextReward } from '../lib/rewards'
 import { sfx } from '../lib/sfx'
@@ -61,7 +61,7 @@ function RewardStatus({ reward, unlocked, isNext, worn, expLeft, onWear }) {
   const base = 'text-[10px] tracking-[0.15em] uppercase'
   if (isNext) return <span className={`${base} tabular-nums text-gold-bright`}>{t(`jeszcze ${expLeft} EXP`, `${expLeft} EXP to go`)}</span>
   if (!unlocked) return <span className={`${base} text-white/25`}>{t('zakryte', 'hidden')}</span>
-  if (reward.type === 'sigil') return <span className={`${base} text-white/45`}>{t('zdobyta', 'earned')}</span>
+  if (reward.type !== 'aura') return <span className={`${base} text-white/45`}>{t('zdobyta', 'earned')}</span>
   if (worn) return <span className={`${base} text-gold-bright`}>✓ {t('noszona', 'worn')}</span>
   return (
     <button type="button" onClick={onWear} className={`${base} cursor-pointer text-white/60 hover:text-gold-bright`}>
@@ -73,6 +73,13 @@ function RewardStatus({ reward, unlocked, isNext, worn, expLeft, onWear }) {
 // podgląd nagrody: aura jako kula w jej kolorach, pieczęć jako miniatura emblematu
 export function RewardIcon({ reward, dim = false, hidden = false, size = 'size-14' }) {
   const opacity = hidden ? 0.15 : dim ? 0.45 : 1
+  if (reward.type === 'shield') {
+    return (
+      <span className={`grid place-items-center ${size}`} style={{ opacity }}>
+        <ShieldIcon className="size-4/5 drop-shadow-[0_0_6px_rgba(226,180,90,0.6)]" />
+      </span>
+    )
+  }
   if (reward.type === 'aura') {
     const { glow, embers } = AURAS[reward.id]
     return (

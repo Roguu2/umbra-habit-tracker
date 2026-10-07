@@ -113,4 +113,14 @@ export function Segmented({ id, options, value, onChange, size = 'md' }) {
   )
 }
 
-export const pct = (v) => (v === null || v === undefined ? '—' : `${Math.round(v * 100)}%`)
+// tarcza passy (lib/shields.js)
+export function ShieldIcon({ className = 'size-4' }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden fill="none" stroke="#e2b45a" strokeWidth="1.6" strokeLinejoin="round">
+      <path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6Z" fill="rgba(226,180,90,0.15)" />
+      <path d="M12 8v8M8.5 11.5h7" stroke="#ff5a6e" />
+    </svg>
+  )
+}
+
+export const pct =(v) => (v === null || v === undefined ? '—' : `${Math.round(v * 100)}%`)

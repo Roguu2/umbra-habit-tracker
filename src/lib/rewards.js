@@ -69,10 +69,15 @@ const SIGIL_NAMES = {
 // domyślna aura też jest na ścieżce (poziom 1), żeby można było do niej wrócić
 const AURA_LEVELS = { blood: 1, ash: 2, dusk: 4, wraith: 7, abyss: 10, inferno: 15 }
 
+// tarcze passy (lib/shields.js) przybywają co SHIELD_EVERY poziomów bez końca; na ścieżce pokazujemy te do poziomu 20
+export const SHIELD_EVERY = 5
+const SHIELD_LEVELS = Array.from({ length: 20 / SHIELD_EVERY }, (_, i) => (i + 1) * SHIELD_EVERY)
+
 // cała ścieżka nagród, od najniższego poziomu
 export const REWARDS = [
   ...Object.entries(AURA_LEVELS).map(([id, level]) => ({ level, type: 'aura', id, name: AURAS[id].name })),
   ...Object.entries(SIGIL_NAMES).map(([level, name]) => ({ level: Number(level), type: 'sigil', id: level, name })),
+  ...SHIELD_LEVELS.map((level) => ({ level, type: 'shield', id: String(level), name: t('Tarcza passy', 'Streak shield') })),
 ].sort((a, b) => a.level - b.level)
 
 export const isUnlocked = (reward, maxLevel) => reward.level <= maxLevel

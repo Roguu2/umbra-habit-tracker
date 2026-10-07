@@ -1,5 +1,5 @@
 import { dayKey, shiftKey } from './game'
-import { existsOn, isFlexible, isPaused, isScheduledOn, weekCount, weekKeys } from './schedule.js'
+import { existsOn, isFlexible, isPaused, isScheduledOn, pauseOn, weekCount, weekKeys } from './schedule.js'
 
 export { isFlexible, isPaused, isScheduledOn, weekCount }
 
@@ -36,7 +36,8 @@ export function dayStats(state, key) {
   const doneSet = new Set(doneIds)
   const scheduledIds = new Set(scheduled.map((q) => q.id))
   const scheduledDone = scheduled.filter((q) => doneSet.has(q.id))
-  const paused = isPaused(state, key)
+  const pause = pauseOn(state, key)
+  const paused = pause !== null
 
   return {
     key,
@@ -49,6 +50,7 @@ export function dayStats(state, key) {
     exp: doneIds.reduce((sum, id) => sum + byId[id].exp, 0),
     plannedExp: scheduled.reduce((sum, q) => sum + q.exp, 0),
     paused,
+    shielded: Boolean(pause?.shield), // przerwa z tarczy passy, nie z urlopu
     // null = dzień się nie liczy (nic nie zaplanowano i nic nie zrobiono, albo urlop)
     ratio: paused ? null : scheduled.length ? scheduledDone.length / scheduled.length : doneIds.length ? 1 : null,
     perfect: !paused && scheduled.length > 0 && scheduledDone.length === scheduled.length,

@@ -132,7 +132,7 @@ export default function Heatmap({ state, today, selected, onSelect }) {
 
 function describe({ stats, future }) {
   if (future) return stats.scheduled.length ? t(`zaplanowano ${stats.scheduled.length} (${stats.plannedExp} EXP)`, `${stats.scheduled.length} planned (${stats.plannedExp} EXP)`) : t('nic nie zaplanowano', 'nothing planned')
-  if (stats.paused) return t('urlop', 'vacation')
+  if (stats.paused) return stats.shielded ? t('tarcza passy', 'streak shield') : t('urlop', 'vacation')
   if (stats.ratio === null) return t('wolne', 'rest day')
   const base = `${stats.scheduledDone.length}/${stats.scheduled.length} ${t('wykonane', 'done')} · ${stats.exp} EXP`
   return stats.perfect ? `${base} · ${t('pełny dzień', 'full day')}` : base
