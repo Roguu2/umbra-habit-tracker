@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { AURAS, DEFAULT_AURA } from '../lib/rewards'
 
 // Profil rozmytego koła (koło o promieniu R splecione z rozkładem Gaussa o odchyleniu sigma — dokładnie to,
 // co robi CSS `filter: blur(sigma)`), policzony raz i zapisany jako gradient radialny.
@@ -35,18 +36,21 @@ function useViewport() {
 
 // Tło: głęboka czerń, dryfujące poświaty, ziarno i unoszące się żarzące drobiny.
 // Wszystkie animacje są w CSS (index.css), więc nie obciążają głównego wątku.
-export default function Atmosphere() {
+// Kolory pochodzą z aury (lib/rewards.js) — zmiana aury przemalowuje tło bez przeskoku drobin.
+export default function Atmosphere({ aura = DEFAULT_AURA }) {
   const { w, h } = useViewport()
+  const palette = AURAS[aura] ?? AURAS[DEFAULT_AURA]
+  const [[rgbA, alphaA], [rgbB, alphaB]] = palette.glow
 
-  // poświaty: krwista (70vw, blur 140px) i złota (55vw, blur 160px)
+  // poświaty: pierwsza 70vw (blur 140px), druga 55vw (blur 160px)
   const glows = useMemo(() => {
-    const blood = blurredDisc(0.35 * w, 140, '61,6,16', 0.6)
-    const gold = blurredDisc(0.275 * w, 160, '58,42,12', 0.4)
+    const a = blurredDisc(0.35 * w, 140, rgbA, alphaA)
+    const b = blurredDisc(0.275 * w, 160, rgbB, alphaB)
     return [
-      { ...blood, cls: 'drift-a', left: 0.15 * w - blood.outer, top: 0.35 * h + 0.35 * w - blood.outer },
-      { ...gold, cls: 'drift-b', right: 0.125 * w - gold.outer, top: -0.2 * h + 0.275 * w - gold.outer },
+      { ...a, cls: 'drift-a', left: 0.15 * w - a.outer, top: 0.35 * h + 0.35 * w - a.outer },
+      { ...b, cls: 'drift-b', right: 0.125 * w - b.outer, top: -0.2 * h + 0.275 * w - b.outer },
     ]
-  }, [w, h])
+  }, [w, h, rgbA, alphaA, rgbB, alphaB])
 
   const embers = useMemo(
     () =>
@@ -57,7 +61,7 @@ export default function Atmosphere() {
         duration: 12 + Math.random() * 16,
         delay: Math.random() * 18,
         drift: (Math.random() - 0.5) * 120,
-        gold: Math.random() > 0.65,
+        tone: Math.random(), // poniżej palette.share → drugi kolor aury
       })),
     [],
   )
@@ -74,22 +78,25 @@ export default function Atmosphere() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.85)_100%)]" />
       <div className="grain absolute inset-0 opacity-[0.07] mix-blend-overlay" />
 
-      {embers.map((e) => (
-        <span
-          key={e.id}
-          className="ember absolute -bottom-4 rounded-full"
-          style={{
-            left: `${e.left}%`,
-            width: e.size,
-            height: e.size,
-            background: e.gold ? '#f5d88e' : '#ff4259',
-            boxShadow: `0 0 ${e.size * 4}px ${e.gold ? '#e2b45a' : '#e0223d'}`,
-            '--drift': `${e.drift}px`,
-            '--dur': `${e.duration}s`,
-            '--delay': `${e.delay}s`,
-          }}
-        />
-      ))}
+      {embers.map((e) => {
+        const [color, shadow] = palette.embers[e.tone < palette.share ? 1 : 0]
+        return (
+          <span
+            key={e.id}
+            className="ember absolute -bottom-4 rounded-full"
+            style={{
+              left: `${e.left}%`,
+              width: e.size,
+              height: e.size,
+              background: color,
+              boxShadow: `0 0 ${e.size * 4}px ${shadow}`,
+              '--drift': `${e.drift}px`,
+              '--dur': `${e.duration}s`,
+              '--delay': `${e.delay}s`,
+            }}
+          />
+        )
+      })}
     </div>
   )
 }

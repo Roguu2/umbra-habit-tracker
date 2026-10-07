@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import ExpBar from './ExpBar'
+import { sigilFor } from '../lib/rewards'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
 
@@ -51,7 +52,8 @@ function HeroName({ name, onRename }) {
   )
 }
 
-export default function CharacterHud({ name, onRename, level, title, current, needed, doneCount, questCount }) {
+// next: { reward, expLeft } — najbliższa nagroda za poziom (lib/rewards.js) albo null, gdy zdobyto wszystkie
+export default function CharacterHud({ name, onRename, level, maxLevel, title, current, needed, next, doneCount, questCount }) {
   const ratio = questCount ? doneCount / questCount : 0
 
   return (
@@ -65,7 +67,7 @@ export default function CharacterHud({ name, onRename, level, title, current, ne
       <div className="hud-cut absolute inset-px bg-[#09080b]/85 backdrop-blur-2xl" />
 
       <div className="relative grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-5 gap-y-6 p-5 sm:gap-x-8 sm:p-7 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
-        <Sigil level={level} />
+        <Sigil level={level} maxLevel={maxLevel} />
 
         <div className="min-w-0">
           <HeroName name={name} onRename={onRename} />
@@ -83,6 +85,20 @@ export default function CharacterHud({ name, onRename, level, title, current, ne
           </AnimatePresence>
           <div className="mt-5">
             <ExpBar level={level} current={current} needed={needed} />
+            {next && (
+              <p className="mt-2 truncate text-[11px] text-white/40">
+                <span className="text-gold/70">▸</span> {t('Poziom', 'Level')} {next.reward.level}:{' '}
+                <span className="text-stone-200">{next.reward.name}</span> ·{' '}
+                {t(
+                  <>
+                    jeszcze <span className="tabular-nums text-gold-bright">{next.expLeft}</span> EXP
+                  </>,
+                  <>
+                    <span className="tabular-nums text-gold-bright">{next.expLeft}</span> EXP to go
+                  </>,
+                )}
+              </p>
+            )}
           </div>
         </div>
 
@@ -92,20 +108,27 @@ export default function CharacterHud({ name, onRename, level, title, current, ne
   )
 }
 
-function Sigil({ level }) {
+// emblemat poziomu — jego wygląd (kręgi, kreski, poświata) rośnie z rangą, patrz SIGILS w lib/rewards.js
+function Sigil({ level, maxLevel }) {
+  const { spokes, rings, color, halo } = sigilFor(maxLevel)
   return (
     <div className="relative grid size-24 place-items-center sm:size-28">
       <svg viewBox="0 0 100 100" className="absolute inset-0 animate-[spin_60s_linear_infinite]">
-        <circle cx="50" cy="50" r="47" fill="none" stroke="rgba(201,162,74,0.35)" strokeWidth="0.6" strokeDasharray="1 3" />
-        {Array.from({ length: 8 }, (_, i) => (
-          <path key={i} d="M50 2v6" stroke="rgba(201,162,74,0.6)" strokeWidth="1" transform={`rotate(${i * 45} 50 50)`} />
+        {Array.from({ length: rings }, (_, i) => (
+          <circle key={i} cx="50" cy="50" r={47 - i * 4} fill="none" stroke={`rgba(${color},0.35)`} strokeWidth="0.6" strokeDasharray="1 3" />
+        ))}
+        {Array.from({ length: spokes }, (_, i) => (
+          <path key={i} d="M50 2v6" stroke={`rgba(${color},0.6)`} strokeWidth="1" transform={`rotate(${(i * 360) / spokes} 50 50)`} />
         ))}
       </svg>
       <svg viewBox="0 0 100 100" className="absolute inset-2 animate-[spin_40s_linear_infinite_reverse]">
         <path d="M50 6 88 72H12Z" fill="none" stroke="rgba(224,34,61,0.35)" strokeWidth="0.8" />
         <path d="M50 94 12 28h76Z" fill="none" stroke="rgba(224,34,61,0.25)" strokeWidth="0.8" />
       </svg>
-      <div className="relative grid size-14 place-items-center rounded-full bg-black/70 shadow-[0_0_30px_rgba(195,20,47,0.35),inset_0_0_14px_rgba(201,162,74,0.25)] ring-1 ring-gold/40 sm:size-16">
+      <div
+        className="relative grid size-14 place-items-center rounded-full bg-black/70 ring-1 ring-gold/40 sm:size-16"
+        style={{ boxShadow: `0 0 30px rgba(${halo[0]},${halo[1]}), inset 0 0 14px rgba(201,162,74,0.25)` }}
+      >
         <div className="text-center leading-none">
           <span className="block font-display text-[8px] tracking-[0.3em] text-gold/70 uppercase">Lvl</span>
           <AnimatePresence mode="popLayout">

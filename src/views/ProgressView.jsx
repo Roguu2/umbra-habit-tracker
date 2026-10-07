@@ -3,14 +3,16 @@ import { motion } from 'framer-motion'
 import Heatmap from '../components/charts/Heatmap'
 import DayDetail from '../components/DayDetail'
 import CharacterSheet from '../components/CharacterSheet'
+import RewardPath from '../components/RewardPath'
 import { MiniRune, Panel, StatTile, pct } from '../components/ui'
 import { ACHIEVEMENTS } from '../lib/achievements'
 import { formatDay } from '../lib/game'
+import { auraFor } from '../lib/rewards'
 import { completionRate, perfectDayStreak } from '../lib/stats'
 import { t } from '../lib/i18n'
 
 export default function ProgressView({ game }) {
-  const { state, today, life, achievementCtx, actions } = game
+  const { state, today, maxLevel, totalExp, life, achievementCtx, actions } = game
   const [selected, setSelected] = useState(today)
   const rate7 = completionRate(state, 7, today)
   const streak = perfectDayStreak(state, today)
@@ -25,6 +27,8 @@ export default function ProgressView({ game }) {
       </div>
 
       <CharacterSheet state={state} today={today} onAdd={actions.saveQuest} />
+
+      <RewardPath maxLevel={maxLevel} totalExp={totalExp} aura={auraFor(state.profile, maxLevel)} onWear={actions.setAura} />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Panel title={t('Kalendarz', 'Calendar')} subtitle={t('kliknij dzień', 'click a day')} accent="blood">

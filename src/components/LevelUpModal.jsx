@@ -1,24 +1,30 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { RewardIcon } from './RewardPath'
 import { LEVEL_UP_LINES, titleFor } from '../lib/game'
+import { nextReward, rewardsBetween } from '../lib/rewards'
+import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
 
-export default function LevelUpModal({ level, onClose }) {
+// levelUp: { level, from } z useGame; aura: noszona aura (żeby oznaczyć ją przy nagrodach)
+export default function LevelUpModal({ levelUp, aura, onWear, onClose }) {
   useEffect(() => {
-    if (!level) return
+    if (!levelUp) return
     const onKey = (e) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [level, onClose])
+  }, [levelUp, onClose])
 
   return (
     <AnimatePresence>
-      {level && <ModalBody key={level} level={level} onClose={onClose} />}
+      {levelUp && <ModalBody key={levelUp.level} level={levelUp.level} from={levelUp.from} aura={aura} onWear={onWear} onClose={onClose} />}
     </AnimatePresence>
   )
 }
 
-function ModalBody({ level, onClose }) {
+function ModalBody({ level, from, aura, onWear, onClose }) {
+  const rewards = rewardsBetween(from, level)
+  const upcoming = nextReward(level)
   const [line] = useState(() => LEVEL_UP_LINES[Math.floor(Math.random() * LEVEL_UP_LINES.length)])
   const [rays] = useState(() =>
     Array.from({ length: 18 }, (_, i) => ({ angle: (i / 18) * 360, dist: 140 + Math.random() * 90, d: 1 + Math.random() * 0.6 })),
@@ -137,6 +143,41 @@ function ModalBody({ level, onClose }) {
           >
             „{line}”
           </motion.p>
+
+          {rewards.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 1.2 }} className="mt-6">
+              <p className="font-display text-[10px] tracking-[0.35em] text-gold/80 uppercase">{t('Odblokowano', 'Unlocked')}</p>
+              <ul className="mt-3 space-y-2 text-left">
+                {rewards.map((r) => (
+                  <li key={`${r.type}-${r.id}`} className="flex items-center gap-3 bg-black/30 px-3 py-2 ring-1 ring-gold/20">
+                    <RewardIcon reward={r} size="size-9" />
+                    <span className="min-w-0 flex-1 truncate text-sm text-stone-100">{r.name}</span>
+                    {r.type === 'aura' &&
+                      (r.id === aura ? (
+                        <span className="text-[10px] tracking-[0.15em] text-gold-bright uppercase">✓ {t('noszona', 'worn')}</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sfx.forge()
+                            onWear(r.id)
+                          }}
+                          className="cursor-pointer text-[10px] tracking-[0.15em] text-gold/80 uppercase hover:text-gold-bright"
+                        >
+                          {t('Przywdziej', 'Wear')}
+                        </button>
+                      ))}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
+
+          {upcoming && (
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 1.35 }} className="mt-4 text-[11px] text-white/40">
+              {t('Następna nagroda', 'Next reward')}: {t('poziom', 'level')} {upcoming.level} — <span className="text-white/70">{upcoming.name}</span>
+            </motion.p>
+          )}
 
           <motion.button
             type="button"

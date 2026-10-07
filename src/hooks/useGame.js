@@ -64,6 +64,8 @@ export function useGame() {
 
   const totalExp = useMemo(() => totalExpOf(state), [state.quests, state.history]) // eslint-disable-line react-hooks/exhaustive-deps
   const { level, current, needed } = levelFromExp(totalExp)
+  // najwyższy osiągnięty poziom (odblokowuje nagrody); state.maxLevel nadąża dopiero w efekcie poniżej
+  const maxLevel = Math.max(state.maxLevel, level)
 
   // --- akcje ---------------------------------------------------------------
 
@@ -187,6 +189,11 @@ export function useGame() {
     setState((s) => ({ ...s, profile: { ...s.profile, name } }))
   }, [])
 
+  // aura tła (lib/rewards.js) — w profilu, więc synchronizuje się między urządzeniami
+  const setAura = useCallback((aura) => {
+    setState((s) => ({ ...s, profile: { ...s.profile, aura } }))
+  }, [])
+
   // tryb urlopu: od dziś do odwołania; wyłączenie kończy przerwę wczoraj (dzisiejszy dzień znów się liczy)
   const setVacation = useCallback(
     (on) => {
@@ -220,12 +227,15 @@ export function useGame() {
 
   // --- level up --------------------------------------------------------------
 
+  // { level, from } — from: poprzedni najwyższy poziom, żeby okno pokazało nagrody ze wszystkich
+  // przeskoczonych poziomów (np. po synchronizacji)
   const [levelUpShown, setLevelUpShown] = useState(null)
   useEffect(() => {
     if (level <= state.maxLevel) return
+    const from = state.maxLevel
     setState((s) => ({ ...s, maxLevel: level }))
     setTimeout(() => {
-      setLevelUpShown(level)
+      setLevelUpShown({ level, from })
       sfx.levelUp()
     }, 800)
   }, [level, state.maxLevel])
@@ -269,6 +279,8 @@ export function useGame() {
     level,
     current,
     needed,
+    totalExp,
+    maxLevel,
     life,
     achievementCtx,
     levelUpShown,
@@ -285,6 +297,7 @@ export function useGame() {
       reorderQuests,
       raiseBar,
       renameHero,
+      setAura,
       finishOnboarding,
       setVacation,
       reset,

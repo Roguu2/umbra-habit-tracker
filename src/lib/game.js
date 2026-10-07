@@ -5,6 +5,9 @@ import { toKey } from './schedule.js'
 
 export const expForLevel = (level) => 100 + (level - 1) * 40
 
+// łączne EXP potrzebne, żeby dojść do danego poziomu (od zera)
+export const expToReach = (level) => (level - 1) * 100 + 20 * (level - 1) * (level - 2)
+
 export function levelFromExp(totalExp) {
   let level = 1
   let current = totalExp

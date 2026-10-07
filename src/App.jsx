@@ -21,14 +21,18 @@ import TodayView from './views/TodayView'
 import PlanView from './views/PlanView'
 import ProgressView from './views/ProgressView'
 import { useGame } from './hooks/useGame'
-import { titleFor } from './lib/game'
+import { expToReach, titleFor } from './lib/game'
+import { auraFor, nextReward } from './lib/rewards'
 import { dayStats } from './lib/stats'
 import { sfx } from './lib/sfx'
 import { t } from './lib/i18n'
 
 export default function App() {
   const game = useGame()
-  const { state, today, level, current, needed, actions } = game
+  const { state, today, level, maxLevel, current, needed, totalExp, actions } = game
+  const aura = auraFor(state.profile, maxLevel)
+  const upcoming = nextReward(maxLevel)
+  const next = upcoming && { reward: upcoming, expLeft: expToReach(upcoming.level) - totalExp }
   const [tab, setTab] = useState('today')
   const [planFocus, setPlanFocus] = useState(null)
   const [editing, setEditing] = useState(null)
@@ -95,7 +99,7 @@ export default function App() {
   if (landing) {
     return (
       <div className="relative min-h-screen overflow-x-hidden text-stone-200">
-        <Atmosphere />
+        <Atmosphere aura={aura} />
         <AnimatePresence>
           <Landing
             onStart={() => setLanding(false)}
@@ -113,16 +117,18 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden text-stone-200">
-      <Atmosphere />
+      <Atmosphere aura={aura} />
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-14">
         <CharacterHud
           name={state.profile.name}
           onRename={actions.renameHero}
           level={level}
+          maxLevel={maxLevel}
           title={titleFor(level)}
           current={current}
           needed={needed}
+          next={next}
           doneCount={todayStats.scheduledDone.length + bonusDone}
           questCount={todayStats.scheduled.length + bonusDone}
         />
@@ -197,7 +203,7 @@ export default function App() {
       />
       <QuestEditor draft={editing} onSave={actions.saveQuest} onRemove={actions.removeQuest} onClose={() => setEditing(null)} />
       <AchievementToast achievement={game.toast} onDone={game.dismissToast} />
-      <LevelUpModal level={game.levelUpShown} onClose={game.closeLevelUp} />
+      <LevelUpModal levelUp={game.levelUpShown} aura={aura} onWear={actions.setAura} onClose={game.closeLevelUp} />
     </div>
   )
 }
