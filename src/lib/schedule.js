@@ -7,7 +7,11 @@ const toDate = (key) => {
   const [y, m, d] = key.split('-').map(Number)
   return new Date(y, m - 1, d)
 }
-const toKey = (date) => date.toLocaleDateString('sv-SE')
+
+// RRRR-MM-DD w czasie lokalnym; ręcznie, bo toLocaleDateString jest kilkadziesiąt razy wolniejsze,
+// a statystyki wołają to tysiące razy na każde kliknięcie
+const pad = (n) => (n < 10 ? `0${n}` : `${n}`)
+export const toKey = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 
 // nawyk "X razy w tygodniu" — w dowolne dni, więc nie jest wymagany w żadnym konkretnym dniu
 export const isFlexible = (quest) => Boolean(quest.perWeek)

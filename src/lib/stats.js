@@ -134,22 +134,41 @@ export function perfectDayStreak(state, today = dayKey()) {
   return streak + (dayStats(state, today).perfect ? 1 : 0)
 }
 
+// to samo co dayStats(...).perfect, ale bez budowania całych statystyk dnia — lifetimeStats woła to dla każdego dnia
+function perfectOn(state, key) {
+  if (isPaused(state, key)) return false
+  const done = new Set(state.history[key] ?? [])
+  let any = false
+  for (const q of state.quests) {
+    if (!isScheduledOn(q, key)) continue
+    if (!done.has(q.id)) return false
+    any = true
+  }
+  return any
+}
+
+// jedno przejście po całej historii: pełne dni, najlepszy tydzień (pn–nd) i wypalone pieczęcie
 export function lifetimeStats(state, today = dayKey()) {
+  const startedAt = state.profile.startedAt
   let perfectDays = 0
   let seals = 0
-  for (const k of keysBetween(state.profile.startedAt, today)) {
-    if (dayStats(state, k).perfect) perfectDays++
+  let bestWeek = 0
+  let week = 0
+  const keys = keysBetween(weekKeys(startedAt)[0], today)
+  keys.forEach((k, i) => {
+    if (i % 7 === 0) week = 0
+    const perfect = perfectOn(state, k)
+    if (perfect) bestWeek = Math.max(bestWeek, ++week)
+    if (k < startedAt) return
+    if (perfect) perfectDays++
     seals += (state.history[k] ?? []).length
-  }
+  })
   return {
     perfectDays,
     seals,
+    bestWeek,
     bestStreak: Math.max(0, ...state.quests.map((q) => questStreaks(state, q, today).best)),
     created: state.quests.filter((q) => q.custom).length,
     plannedAhead: state.quests.some((q) => q.date && q.date > q.createdAt),
   }
-}
-
-export function weekPerfectDays(state, weekStartKey) {
-  return keysBetween(weekStartKey, shiftKey(weekStartKey, 6)).filter((k) => dayStats(state, k).perfect).length
 }

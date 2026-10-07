@@ -84,8 +84,7 @@ export function mergeStates(base, local, remote) {
 
   return {
     ...local,
-    // EXP zdobyte na obu urządzeniach sumuje się
-    totalExp: Math.max(0, local.totalExp + remote.totalExp - base.totalExp),
+    // EXP nie jest scalane osobno — wynika ze scalonej historii (totalExpOf)
     maxLevel: Math.max(local.maxLevel, remote.maxLevel),
     onboarded: local.onboarded || remote.onboarded,
     profile: mergeMap(base.profile, local.profile, remote.profile),

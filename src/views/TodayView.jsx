@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, Reorder, motion } from 'framer-motion'
 import QuestCard from '../components/QuestCard'
 import QuickAdd from '../components/QuickAdd'
+import WeakSpotHint from '../components/WeakSpotHint'
+import RaiseBar from '../components/RaiseBar'
 import { MiniRune, Panel } from '../components/ui'
 import { formatDay, partOfDay, shiftKey } from '../lib/game'
 import { byTime, dayStats, perfectDayStreak, questStreaks, weekCount } from '../lib/stats'
@@ -24,7 +26,7 @@ function useClock() {
   return now
 }
 
-export default function TodayView({ game, onEdit, onOpenPlan }) {
+export default function TodayView({ game, onEdit, onOpenPlan, onOpenQuiz }) {
   const { state, today, actions } = game
   const now = useClock()
   const stats = dayStats(state, today)
@@ -105,6 +107,18 @@ export default function TodayView({ game, onEdit, onOpenPlan }) {
             <p className="mx-auto mt-2 max-w-sm font-lore text-lg text-white/40 italic">
               {t('Wpisz powyżej, co chcesz dziś zrobić, albo wybierz jedną z podpowiedzi.', 'Write above what you want to do today, or pick one of the suggestions.')}
             </p>
+            <motion.button
+              type="button"
+              onClick={() => {
+                sfx.page()
+                onOpenQuiz()
+              }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.96 }}
+              className="hud-cut-sm mt-6 cursor-pointer bg-black/40 px-6 py-3 font-display text-[11px] font-bold tracking-[0.25em] text-gold-bright uppercase ring-1 ring-gold/40 hover:ring-gold-bright"
+            >
+              {t('Nie wiesz od czego zacząć? Dobierz nawyki', "Not sure where to start? Find habits for me")}
+            </motion.button>
           </motion.div>
         )}
 
@@ -132,6 +146,8 @@ export default function TodayView({ game, onEdit, onOpenPlan }) {
       <aside className="space-y-8 lg:mt-12">
         <Streak state={state} today={today} />
         <Tomorrow state={state} today={today} onOpenPlan={onOpenPlan} />
+        <RaiseBar state={state} today={today} onRaise={actions.raiseBar} />
+        <WeakSpotHint state={state} today={today} onAdd={actions.saveQuest} panel />
       </aside>
     </div>
   )

@@ -192,6 +192,7 @@ function SettingsBody({ game, sync, push, onClose, onOpen }) {
 
       <Section label={t('Pomoc', 'Help')}>
         <div className="flex flex-wrap gap-2">
+          <Button onClick={() => go('quiz')}>{t('Dobierz nawyki', 'Find habits for me')}</Button>
           <Button onClick={() => go('tour')}>{t('Poradnik', 'Guide')}</Button>
           <Button onClick={() => go('feedback')}>{t('Zgłoś problem lub pomysł', 'Report a problem or idea')}</Button>
           <Button onClick={() => go('legal')}>{t('Prywatność i regulamin', 'Privacy & terms')}</Button>

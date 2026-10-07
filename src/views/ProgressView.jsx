@@ -24,7 +24,7 @@ export default function ProgressView({ game }) {
         <StatTile label={t('Wykonane zadania', 'Quests completed')} value={life.seals} hint={t('łącznie', 'all time')} delay={0.2} />
       </div>
 
-      <CharacterSheet state={state} today={today} />
+      <CharacterSheet state={state} today={today} onAdd={actions.saveQuest} />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Panel title={t('Kalendarz', 'Calendar')} subtitle={t('kliknij dzień', 'click a day')} accent="blood">

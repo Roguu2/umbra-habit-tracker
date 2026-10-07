@@ -1,4 +1,5 @@
 import { locale, t } from './i18n.js'
+import { toKey } from './schedule.js'
 
 // --- Poziomy -------------------------------------------------------------
 
@@ -12,6 +13,15 @@ export function levelFromExp(totalExp) {
     level++
   }
   return { level, current, needed: expForLevel(level) }
+}
+
+// EXP zawsze wynika z historii i obecnej wartości zadań — nie trzymamy osobnego licznika,
+// który mógłby się rozjechać (np. po zmianie nazwy zadania albo przy scalaniu synchronizacji)
+export function totalExpOf(state) {
+  const exp = Object.fromEntries(state.quests.map((q) => [q.id, q.exp]))
+  let total = 0
+  for (const ids of Object.values(state.history)) for (const id of ids) total += exp[id] ?? 0
+  return total
 }
 
 const TITLES = [
@@ -126,7 +136,7 @@ export const TIERS = {
 
 // --- Kalendarz ----------------------------------------------------------
 
-export const dayKey = (date = new Date()) => date.toLocaleDateString('sv-SE')
+export const dayKey = (date = new Date()) => toKey(date)
 
 export function parseKey(key) {
   const [y, m, d] = key.split('-').map(Number)
@@ -213,7 +223,6 @@ export function createInitialState() {
   const today = dayKey()
   return {
     version: STATE_VERSION,
-    totalExp: 0,
     maxLevel: 1,
     profile: { name: t('Wędrowiec', 'Wanderer'), startedAt: today },
     // nowa osoba zaczyna z pustym planem i poradnikiem
@@ -243,6 +252,8 @@ export function migrateState(raw) {
     merged.quests = merged.quests.filter((q) => !(DEFAULT_IDS.has(q.id) && !q.custom && !used.has(q.id)))
     merged.cleanedDefaults = true
   }
+  // dawny licznik EXP — teraz EXP liczy się z historii (totalExpOf)
+  delete merged.totalExp
   return merged
 }
 
@@ -252,7 +263,6 @@ function migrateLegacy(raw, base, history) {
 
   return {
     ...base,
-    totalExp: raw.totalExp ?? 0,
     maxLevel: raw.maxLevel ?? 1,
     profile: { name: raw.profile?.name ?? base.profile.name, startedAt: firstDay },
     history,

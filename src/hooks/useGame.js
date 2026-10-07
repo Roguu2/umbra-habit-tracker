@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ALL_DAYS, autoProps, createInitialState, dayKey, levelFromExp, migrateState, parseKey, shiftKey, weekStart } from '../lib/game'
-import { isPaused, lifetimeStats, weekPerfectDays } from '../lib/stats'
+import { ALL_DAYS, autoProps, createInitialState, dayKey, levelFromExp, migrateState, shiftKey, totalExpOf } from '../lib/game'
+import { isPaused, lifetimeStats } from '../lib/stats'
 import { ACHIEVEMENTS } from '../lib/achievements'
 import { sfx } from '../lib/sfx'
 import { useSync } from './useSync'
@@ -28,14 +28,13 @@ function useToday() {
   return today
 }
 
-// ustawia wykonanie zadania w danym dniu i koryguje EXP
+// ustawia wykonanie zadania w danym dniu (EXP wynika z historii — patrz totalExpOf)
 function setDone(s, quest, key, done) {
   const list = s.history[key] ?? []
   const was = list.includes(quest.id)
   if (was === done) return s
   return {
     ...s,
-    totalExp: Math.max(0, s.totalExp + (done ? quest.exp : -quest.exp)),
     history: { ...s.history, [key]: done ? [...list, quest.id] : list.filter((x) => x !== quest.id) },
   }
 }
@@ -63,7 +62,8 @@ export function useGame() {
     }
   }, [state])
 
-  const { level, current, needed } = levelFromExp(state.totalExp)
+  const totalExp = useMemo(() => totalExpOf(state), [state.quests, state.history]) // eslint-disable-line react-hooks/exhaustive-deps
+  const { level, current, needed } = levelFromExp(totalExp)
 
   // --- akcje ---------------------------------------------------------------
 
@@ -155,6 +155,24 @@ export function useGame() {
     [today],
   )
 
+  // podniesienie poprzeczki (up z harderVersion) albo odmowa (up = null); w obu przypadkach
+  // barAt wycisza kolejne propozycje dla tego nawyku na 14 dni
+  const raiseBar = useCallback(
+    (id, up) => {
+      setState((s) => ({
+        ...s,
+        quests: s.quests.map((q) => {
+          if (q.id !== id) return q
+          const next = { ...q, barAt: today }
+          if (up?.perWeek) next.perWeek = up.perWeek
+          if (up?.name) Object.assign(next, { name: up.name, ...autoProps(up.name) })
+          return next
+        }),
+      }))
+    },
+    [today],
+  )
+
   // nowa kolejność zadań bez godziny (po przeciągnięciu)
   const reorderQuests = useCallback((ids) => {
     const rank = Object.fromEntries(ids.map((id, i) => [id, i]))
@@ -220,13 +238,7 @@ export function useGame() {
 
   const life = useMemo(() => lifetimeStats(state, today), [state, today])
 
-  const achievementCtx = useMemo(() => {
-    let bestWeek = 0
-    for (let w = weekStart(parseKey(state.profile.startedAt)); dayKey(w) <= today; w.setDate(w.getDate() + 7)) {
-      bestWeek = Math.max(bestWeek, weekPerfectDays(state, dayKey(w)))
-    }
-    return { life, level, bestWeek }
-  }, [state, life, level, today])
+  const achievementCtx = useMemo(() => ({ life, level, bestWeek: life.bestWeek }), [life, level])
 
   const [toasts, setToasts] = useState([])
 
@@ -271,6 +283,7 @@ export function useGame() {
       saveQuest,
       removeQuest,
       reorderQuests,
+      raiseBar,
       renameHero,
       finishOnboarding,
       setVacation,

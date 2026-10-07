@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { MiniRune, Panel } from './ui'
-import { attributeStats, characterClass, weakSpot } from '../lib/attributes'
+import WeakSpotHint from './WeakSpotHint'
+import { attributeStats, characterClass } from '../lib/attributes'
 import { TIERS } from '../lib/game'
 import { t } from '../lib/i18n'
 
@@ -18,10 +19,9 @@ const SURFACE = '#09080b'
 const angle = (i, n) => -Math.PI / 2 + (i * 2 * Math.PI) / n
 const point = (i, n, r) => [C + Math.cos(angle(i, n)) * r, C + Math.sin(angle(i, n)) * r]
 
-export default function CharacterSheet({ state, today }) {
+export default function CharacterSheet({ state, today, onAdd }) {
   const attrs = useMemo(() => attributeStats(state, today), [state, today])
   const cls = characterClass(attrs)
-  const weak = weakSpot(attrs)
 
   return (
     <Panel title={t('Karta postaci', 'Character Sheet')} subtitle={t('atrybuty rosną z każdą pieczęcią', 'attributes grow with every seal')} delay={0.25}>
@@ -67,22 +67,7 @@ export default function CharacterSheet({ state, today }) {
             ))}
           </ul>
 
-          {weak && (
-            <p className="border-l-2 border-blood/60 pl-3 text-[12px] leading-relaxed text-white/55">
-              {weak.type === 'lagging' ? (
-                <>
-                  <b className="text-blood-bright">{weak.attr.label}</b>{' '}
-                  {t('słabnie — w ostatnich 14 dniach wykonano', 'is waning — in the last 14 days you completed')} {weak.attr.recent.done} {t('z', 'of')}{' '}
-                  {weak.attr.recent.planned} {t('zaplanowanych zadań.', weak.attr.recent.planned === 1 ? 'planned quest.' : 'planned quests.')}
-                </>
-              ) : (
-                <>
-                  <b className="text-white/80">{weak.attr.label}</b>{' '}
-                  {t('pozostaje nieodkryta — dodaj zadanie z tej dziedziny, by rozwinąć atrybut.', 'remains undiscovered — add a quest from this domain to awaken the attribute.')}
-                </>
-              )}
-            </p>
-          )}
+          <WeakSpotHint state={state} today={today} attrs={attrs} onAdd={onAdd} />
         </div>
       </div>
     </Panel>

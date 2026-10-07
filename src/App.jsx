@@ -16,6 +16,7 @@ import Landing from './components/Landing'
 import { usePush } from './hooks/usePush'
 import QuestEditor from './components/QuestEditor'
 import Onboarding from './components/Onboarding'
+import HabitQuiz from './components/HabitQuiz'
 import TodayView from './views/TodayView'
 import PlanView from './views/PlanView'
 import ProgressView from './views/ProgressView'
@@ -40,7 +41,7 @@ export default function App() {
     if (code) history.replaceState(null, '', location.pathname)
     return code
   })
-  // otwarte okno: null | 'sync' | 'reminders' | 'settings' | 'feedback' | 'legal'
+  // otwarte okno: null | 'sync' | 'reminders' | 'settings' | 'feedback' | 'legal' | 'quiz'
   const [panel, setPanel] = useState(linkCode ? 'sync' : null)
   const closePanel = () => setPanel(null)
   const push = usePush(game.sync)
@@ -50,6 +51,9 @@ export default function App() {
   const [landing, setLanding] = useState(fresh && !linkCode)
 
   const todayStats = dayStats(state, today)
+  // licznik dnia: zaplanowane na dziś + wszystko, co dziś zrobiono ponad plan (nawyki "X razy w tygodniu",
+  // zadania z innych dni) — te drugie liczą się dopiero po wykonaniu, więc nie psują pełnego dnia
+  const bonusDone = todayStats.flexDone.length + todayStats.extra.filter((q) => !q.archivedAt).length
   const detail = state.quests.find((q) => q.id === detailId) ?? null
 
   const openPlan = (key) => {
@@ -63,7 +67,7 @@ export default function App() {
   }
 
   const views = {
-    today: <TodayView game={game} onEdit={setEditing} onOpenPlan={openPlan} />,
+    today: <TodayView game={game} onEdit={setEditing} onOpenPlan={openPlan} onOpenQuiz={() => setPanel('quiz')} />,
     plan: <PlanView game={game} focusDay={planFocus} onEdit={setEditing} onDetail={(q) => setDetailId(q.id)} />,
     progress: <ProgressView game={game} />,
   }
@@ -75,6 +79,16 @@ export default function App() {
       <SyncPanel open={panel === 'sync'} sync={game.sync} initialCode={game.sync.code ? null : linkCode} onClose={closePanel} />
       <FeedbackPanel open={panel === 'feedback'} onClose={closePanel} />
       <LegalPanel open={panel === 'legal'} onClose={closePanel} />
+      <HabitQuiz
+        open={panel === 'quiz'}
+        existingNames={state.quests.filter((q) => !q.archivedAt).map((q) => q.name)}
+        onClose={closePanel}
+        onAdd={(drafts) => {
+          drafts.forEach(actions.saveQuest)
+          closePanel()
+          setTab('today')
+        }}
+      />
     </>
   )
 
@@ -109,8 +123,8 @@ export default function App() {
           title={titleFor(level)}
           current={current}
           needed={needed}
-          doneCount={todayStats.scheduledDone.length}
-          questCount={todayStats.scheduled.length}
+          doneCount={todayStats.scheduledDone.length + bonusDone}
+          questCount={todayStats.scheduled.length + bonusDone}
         />
 
         <NavTabs active={tab} onChange={setTab} />
@@ -175,6 +189,8 @@ export default function App() {
         open={(!state.onboarded && !panel) || tourOpen}
         defaultName={state.profile.name}
         onFinish={(name) => {
+          // nowa osoba z pustym planem od razu dostaje ankietę doboru nawyków
+          if (!state.onboarded && state.quests.length === 0) setPanel('quiz')
           actions.finishOnboarding(name)
           setTourOpen(false)
         }}
