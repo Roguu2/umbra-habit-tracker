@@ -22,7 +22,7 @@ Umbra („Księga Nawyków”) to tracker nawyków w klimacie dark fantasy RPG. 
 - **Wdrożenie:** Netlify buduje i publikuje każdy push na gałąź `main`.
 - **Stan gry** to jeden obiekt w `localStorage` (`umbra-habit-tracker:v1`, wersja formatu 3): zadania, historia odhaczeń,
   kroki, liczniki, przerwy (urlop i tarcze), osiągnięcia, profil (imię, data startu, wybrana aura), najwyższy poziom.
-  EXP **nie jest zapisywany** — zawsze liczy się z historii (suma EXP odhaczonych zadań).
+  EXP **nie jest zapisywany** — zawsze liczy się z historii (suma EXP odhaczonych zadań plus bonusy za powroty z cienia).
 - **Struktura kodu:** `src/lib` — czysta logika (gra, statystyki, harmonogram, atrybuty, nagrody, tarcze, katalog nawyków,
   dobór, poprzeczka, synchronizacja); `src/hooks` — stan Reacta (`useGame`, `useSync`, `usePush`); `src/components`
   i `src/views` — interfejs (zakładki Dziś, Plan, Postępy); `netlify/` — serwer.
@@ -101,6 +101,11 @@ Wszystkie są na **ścieżce nagród** w zakładce Postępy (zdobyte, najbliższ
   {{shieldMinStreak}} dni właśnie przepadła przez 1–{{shieldMaxDays}} niepełnych dni (od wczoraj wstecz) i tarcz wystarczy,
   panel Passy proponuje „Użyj tarczy”. Użyta tarcza to jednodniowa przerwa (jak urlop) oznaczona jako tarcza — passa i serie wracają.
   Dłuższej przerwy tarcze nie łatają. W kalendarzu taki dzień jest opisany jako „tarcza passy”.
+- **Powrót z cienia** — gdy przepadnie passa licząca co najmniej {{minLostStreak}} dni (i nie uratuje jej tarcza), pierwszy dzień
+  z wykonanym zadaniem po jej utracie daje jednorazowy komunikat „Wracasz z cienia” i +{{returnBonus}} EXP; tego dnia panel Passy
+  zamiast zachęty po utracie pokazuje powrót. Zadania wykonane w samym dniu utraty się nie liczą (passa przepada z jego końcem).
+  Bonus wynika z historii, jak cały EXP: gdy później użyjesz tarczy na dzień utraty, passa wraca, a powrót i bonus znikają.
+  Komunikat pokazuje się raz na powrót — także po przeładowaniu i na innych urządzeniach (pole `comebackSeen` w stanie gry).
 
 ## 8. Atrybuty i klasa postaci
 

@@ -29,6 +29,7 @@ const recommend = await lib('recommend')
 const progression = await lib('progression')
 const rewards = await lib('rewards')
 const shields = await lib('shields')
+const comeback = await lib('comeback')
 const push = await import(new URL('netlify/push-handler.mjs', root))
 const pkg = JSON.parse(readFileSync(new URL('package.json', root), 'utf8'))
 
@@ -176,6 +177,8 @@ const VALUES = {
   shieldEvery: rewards.SHIELD_EVERY,
   shieldMaxDays: shields.MAX_RESCUE_DAYS,
   shieldMinStreak: shields.MIN_RESCUE_STREAK,
+  minLostStreak: comeback.MIN_LOST_STREAK,
+  returnBonus: comeback.RETURN_BONUS,
   reminderLeads,
   reminderEvenings,
   reminderWindow: push.WINDOW_MIN,

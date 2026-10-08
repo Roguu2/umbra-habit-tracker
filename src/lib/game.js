@@ -246,6 +246,7 @@ export function createInitialState() {
     counts: {}, // liczniki: counts[dzień][id zadania] = ile
     pauses: [], // tryb urlopu: [{ from, to }], to = null — trwa
     achievements: {},
+    comebackSeen: null, // dzień ostatniego ogłoszonego powrotu z cienia (lib/comeback.js) — komunikat tylko raz
   }
 }
 

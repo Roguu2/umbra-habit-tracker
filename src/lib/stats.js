@@ -136,18 +136,24 @@ export function perfectDayStreak(state, today = dayKey()) {
   return streak + (dayStats(state, today).perfect ? 1 : 0)
 }
 
-// to samo co dayStats(...).perfect, ale bez budowania całych statystyk dnia — lifetimeStats woła to dla każdego dnia
-function perfectOn(state, key) {
-  if (isPaused(state, key)) return false
-  const done = new Set(state.history[key] ?? [])
-  let any = false
+// Wynik dnia dla passy, bez budowania pełnych statystyk (dayStats) — liczony dla każdego dnia historii.
+// counted: dzień się liczy (jak ratio !== null w dayStats); perfect: pełny dzień; done: ile zadań wykonano.
+export function dayOutcome(state, key) {
+  const byId = questIndex(state)
+  const doneIds = (state.history[key] ?? []).filter((id) => byId[id])
+  if (isPaused(state, key)) return { counted: false, perfect: false, done: doneIds.length }
+  const done = new Set(doneIds)
+  let scheduled = 0
+  let missed = 0
   for (const q of state.quests) {
     if (!isScheduledOn(q, key)) continue
-    if (!done.has(q.id)) return false
-    any = true
+    scheduled++
+    if (!done.has(q.id)) missed++
   }
-  return any
+  return { counted: scheduled > 0 || doneIds.length > 0, perfect: scheduled > 0 && missed === 0, done: doneIds.length }
 }
+
+const perfectOn = (state, key) => dayOutcome(state, key).perfect
 
 // jedno przejście po całej historii: pełne dni i najlepszy tydzień (pn–nd)
 export function lifetimeStats(state, today = dayKey()) {

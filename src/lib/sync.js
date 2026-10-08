@@ -103,5 +103,7 @@ export function mergeStates(base, local, remote) {
     }),
     pauses: pick(base.pauses, local.pauses, remote.pauses) ?? [],
     achievements,
+    // późniejsza data wygrywa: powrót ogłoszony na którymkolwiek urządzeniu nie wraca na innym
+    comebackSeen: [local.comebackSeen, remote.comebackSeen].filter(Boolean).sort().at(-1) ?? null,
   }
 }

@@ -8,6 +8,7 @@ import { MiniRune, Panel, ShieldIcon } from '../components/ui'
 import { formatDay, partOfDay, shiftKey } from '../lib/game'
 import { byTime, dayStats, perfectDayStreak, questStreaks, weekCount } from '../lib/stats'
 import { rescueOffer, shieldsEarned, shieldsLeft } from '../lib/shields'
+import { RETURN_BONUS } from '../lib/comeback'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
 
@@ -145,7 +146,7 @@ export default function TodayView({ game, onEdit, onOpenPlan, onOpenQuiz }) {
       </section>
 
       <aside className="space-y-8 lg:mt-12">
-        <Streak state={state} today={today} maxLevel={game.maxLevel} seals={game.life.seals} onShield={actions.spendShields} />
+        <Streak state={state} today={today} maxLevel={game.maxLevel} seals={game.life.seals} comebackToday={game.comebackToday} onShield={actions.spendShields} />
         <Tomorrow state={state} today={today} onOpenPlan={onOpenPlan} />
         <RaiseBar state={state} today={today} onRaise={actions.raiseBar} />
         <WeakSpotHint state={state} today={today} onAdd={actions.saveQuest} panel />
@@ -192,7 +193,7 @@ function ReorderableList({ items, onCommit, children }) {
   )
 }
 
-function Streak({ state, today, maxLevel, seals, onShield }) {
+function Streak({ state, today, maxLevel, seals, comebackToday, onShield }) {
   const streak = perfectDayStreak(state, today)
   const shields = shieldsLeft(state, maxLevel)
   const offer = rescueOffer(state, today, maxLevel)
@@ -247,9 +248,11 @@ function Streak({ state, today, maxLevel, seals, onShield }) {
           {streak}
         </motion.span>
         <p className="text-[13px] leading-snug text-white/50">
-          {streak === 0
-            ? t('Wykonaj dziś cały plan, aby rozpalić passę.', 'Complete the whole plan today to kindle a streak.')
-            : t(`Nie przerywaj — każdy pełny dzień dokłada ogień do stosu.`, `Don't break it — every full day adds fire to the pyre.`)}
+          {comebackToday
+            ? t(`Wracasz z cienia (+${RETURN_BONUS} EXP). Rozpal passę na nowo.`, `You return from the shadows (+${RETURN_BONUS} EXP). Kindle the streak anew.`)
+            : streak === 0
+              ? t('Wykonaj dziś cały plan, aby rozpalić passę.', 'Complete the whole plan today to kindle a streak.')
+              : t(`Nie przerywaj — każdy pełny dzień dokłada ogień do stosu.`, `Don't break it — every full day adds fire to the pyre.`)}
         </p>
       </div>
       {/* licznik, który nigdy nie przepada — przeciwwaga dla passy, którą można stracić */}

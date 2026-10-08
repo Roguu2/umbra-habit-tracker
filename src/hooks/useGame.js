@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ALL_DAYS, autoProps, createInitialState, dayKey, levelFromExp, migrateState, shiftKey, totalExpOf } from '../lib/game'
 import { isPaused, lifetimeStats } from '../lib/stats'
 import { ACHIEVEMENTS } from '../lib/achievements'
+import { RETURN_BONUS, returnDays } from '../lib/comeback'
 import { shieldPauses } from '../lib/shields'
 import { sfx } from '../lib/sfx'
+import { t } from '../lib/i18n'
 import { useSync } from './useSync'
 
 const STORAGE_KEY = 'umbra-habit-tracker:v1'
@@ -63,7 +65,13 @@ export function useGame() {
     }
   }, [state])
 
-  const totalExp = useMemo(() => totalExpOf(state), [state.quests, state.history]) // eslint-disable-line react-hooks/exhaustive-deps
+  // powroty z cienia (lib/comeback.js) — ich bonus, jak cały EXP, wynika z historii
+  const comebacks = useMemo(
+    () => returnDays(state, today),
+    [state.quests, state.history, state.pauses, state.profile.startedAt, today], // eslint-disable-line react-hooks/exhaustive-deps
+  )
+  const questExp = useMemo(() => totalExpOf(state), [state.quests, state.history]) // eslint-disable-line react-hooks/exhaustive-deps
+  const totalExp = questExp + comebacks.length * RETURN_BONUS
   const { level, current, needed } = levelFromExp(totalExp)
   // najwyższy osiągnięty poziom (odblokowuje nagrody); state.maxLevel nadąża dopiero w efekcie poniżej
   const maxLevel = Math.max(state.maxLevel, level)
@@ -274,10 +282,27 @@ export function useGame() {
       ...s,
       achievements: { ...s.achievements, ...Object.fromEntries(fresh.map((a) => [a.id, today])) },
     }))
-    setToasts((t) => [...t, ...fresh])
+    setToasts((queue) => [...queue, ...fresh])
   }, [achievementCtx, today])
 
-  const dismissToast = useCallback(() => setToasts((t) => t.slice(1)), [])
+  // powrót z cienia ogłaszamy raz: comebackSeen w stanie gry synchronizuje się, więc inne urządzenie go nie powtórzy
+  const comebackToday = comebacks.at(-1) === today
+  useEffect(() => {
+    if (!comebackToday || state.comebackSeen === today) return
+    setState((s) => ({ ...s, comebackSeen: today }))
+    setToasts((queue) => [
+      ...queue,
+      {
+        id: `comeback-${today}`,
+        kicker: t('Powrót z cienia', 'Back from the shadows'),
+        name: t('Wracasz z cienia', 'You return from the shadows'),
+        desc: t(`Passa przepadła, ale ty nie. +${RETURN_BONUS} EXP`, `The streak fell, but you did not. +${RETURN_BONUS} EXP`),
+        rune: 1,
+      },
+    ])
+  }, [comebackToday, state.comebackSeen, today])
+
+  const dismissToast = useCallback(() => setToasts((queue) => queue.slice(1)), [])
 
   return {
     state,
@@ -287,6 +312,7 @@ export function useGame() {
     needed,
     totalExp,
     maxLevel,
+    comebackToday,
     life,
     achievementCtx,
     levelUpShown,
