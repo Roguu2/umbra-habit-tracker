@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion'
 import RuneSeal from './RuneSeal'
-import { CATEGORIES, TIERS, dayKey, minimumExp } from '../lib/game'
+import { CATEGORIES, TIERS, dayKey, expFor, expMultiplier } from '../lib/game'
 import { registerCheck, vibrate, weightOf } from '../lib/feedback'
 import { sfx } from '../lib/sfx'
 import { plural, t } from '../lib/i18n'
@@ -35,14 +35,17 @@ export default function QuestCard({
   const [open, setOpen] = useState(false)
   const c = TIERS[quest.tier]
   const hasSteps = quest.steps.length > 0
-  const exp = minimal ? minimumExp(quest.exp) : quest.exp
+  // EXP jak w historii (completionExp): z minimum dnia i bonusem przepowiedni — karta jest tylko na ekranie Dziś
+  const today = dayKey()
+  const exp = expFor(quest, today, minimal)
+  const bonus = Math.round((expMultiplier(quest, today) - 1) * 100)
   const canMinimum = quest.kind === 'check' && Boolean(quest.minimum) && Boolean(onMinimum)
 
   // efekt i dźwięk przy każdej zmianie stanu — także gdy zadanie zaliczy się samo po ostatnim kroku
   const prevDone = useRef(done)
   useEffect(() => {
     if (done && !prevDone.current) {
-      const combo = registerCheck(dayKey())
+      const combo = registerCheck(today)
       const weight = weightOf(exp)
       setBurst((b) => ({ key: b.key + 1, combo, weight }))
       sfx.seal(quest.tier, { combo, weight })
@@ -51,7 +54,7 @@ export default function QuestCard({
       sfx.unseal()
     }
     prevDone.current = done
-  }, [done, quest.tier, exp])
+  }, [done, quest.tier, exp, today])
 
   const toggleOpen = () => {
     if (!hasSteps) return
@@ -200,6 +203,11 @@ export default function QuestCard({
             )}
             <span>{CATEGORIES[quest.attr]?.label}</span>
             <span style={{ color: c.bright }}>+{exp} EXP</span>
+            {bonus > 0 && (
+              <span title={t('Bonus przepowiedni dnia', 'Omen of the day bonus')} className="text-gold-bright">
+                ✦ +{bonus}%
+              </span>
+            )}
             {quest.perWeek && weekDone !== null && (
               <span className={weekDone >= quest.perWeek ? 'text-gold-bright' : 'text-white/55'}>
                 {Math.min(weekDone, quest.perWeek)}/{quest.perWeek} {t('w tym tyg.', 'this week')}
@@ -242,7 +250,7 @@ export default function QuestCard({
                   aria-label={t(`${quest.name}: zalicz minimum (${quest.minimum})`, `${quest.name}: complete the minimum (${quest.minimum})`)}
                   className="cursor-pointer border border-white/15 px-2 py-0.5 text-white/60 transition-colors hover:border-gold/60 hover:text-gold-bright"
                 >
-                  ◐ {t('Minimum', 'Minimum')}: {quest.minimum} · +{minimumExp(quest.exp)} EXP
+                  ◐ {t('Minimum', 'Minimum')}: {quest.minimum} · +{expFor(quest, today, true)} EXP
                 </button>
               )}
             </div>

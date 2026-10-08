@@ -5,6 +5,7 @@ import DayDetail from '../components/DayDetail'
 import CharacterSheet from '../components/CharacterSheet'
 import RewardPath from '../components/RewardPath'
 import Bestiary from '../components/Bestiary'
+import Relics from '../components/Relics'
 import { MiniRune, Panel, StatTile, pct } from '../components/ui'
 import { ACHIEVEMENTS } from '../lib/achievements'
 import { formatDay } from '../lib/game'
@@ -32,6 +33,8 @@ export default function ProgressView({ game }) {
       <RewardPath maxLevel={maxLevel} totalExp={totalExp} aura={auraFor(state.profile, maxLevel)} onWear={actions.setAura} />
 
       <Bestiary state={state} today={today} />
+
+      <Relics state={state} />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Panel title={t('Kalendarz', 'Calendar')} subtitle={t('kliknij dzień', 'click a day')} accent="blood">

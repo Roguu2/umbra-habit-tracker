@@ -1,4 +1,5 @@
 import { locale, t } from './i18n.js'
+import { prophecyBonus } from './prophecy.js'
 import { toKey } from './schedule.js'
 
 // --- Poziomy -------------------------------------------------------------
@@ -23,7 +24,14 @@ export function levelFromExp(totalExp) {
 export const MINIMUM_MAX_LENGTH = 32
 export const minimumExp = (exp) => Math.ceil(exp / 2)
 export const isMinimal = (state, questId, key) => (state.minimums?.[key] ?? []).includes(questId)
-export const completionExp = (state, quest, key) => (isMinimal(state, quest.id, key) ? minimumExp(quest.exp) : quest.exp)
+
+// mnożnik EXP wykonania w danym dniu: przepowiednia dnia (lib/prophecy.js) dla kategorii zadania
+export const expMultiplier = (quest, key) => 1 + prophecyBonus(key, quest.attr)
+
+// EXP za wykonanie zadania w danym dniu (minimal — tylko wersja minimalna); jedno źródło dla EXP, atrybutów,
+// statystyk dnia i obrażeń strażnika tygodnia
+export const expFor = (quest, key, minimal = false) => Math.round((minimal ? minimumExp(quest.exp) : quest.exp) * expMultiplier(quest, key))
+export const completionExp = (state, quest, key) => expFor(quest, key, isMinimal(state, quest.id, key))
 
 // EXP zawsze wynika z historii i obecnej wartości zadań — nie trzymamy osobnego licznika,
 // który mógłby się rozjechać (np. po zmianie nazwy zadania albo przy scalaniu synchronizacji)

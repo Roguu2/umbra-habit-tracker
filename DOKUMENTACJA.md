@@ -22,7 +22,7 @@ Umbra („Księga Nawyków”) to tracker nawyków w klimacie dark fantasy RPG. 
 - **Wdrożenie:** Netlify buduje i publikuje każdy push na gałąź `main`.
 - **Stan gry** to jeden obiekt w `localStorage` (`umbra-habit-tracker:v1`, wersja formatu 3): zadania, historia odhaczeń,
   kroki, liczniki, przerwy (urlop i tarcze), osiągnięcia, profil (imię, data startu, wybrana aura), najwyższy poziom.
-  EXP **nie jest zapisywany** — zawsze liczy się z historii (suma EXP odhaczonych zadań plus bonusy za powroty z cienia).
+  EXP **nie jest zapisywany** — zawsze liczy się z historii (suma EXP odhaczonych zadań z bonusami dnia plus bonusy za powroty z cienia).
 - **Struktura kodu:** `src/lib` — czysta logika (gra, statystyki, harmonogram, atrybuty, nagrody, tarcze, katalog nawyków,
   dobór, poprzeczka, synchronizacja); `src/hooks` — stan Reacta (`useGame`, `useSync`, `usePush`); `src/components`
   i `src/views` — interfejs (zakładki Dziś, Plan, Postępy); `netlify/` — serwer.
@@ -97,7 +97,8 @@ Zadanie z historią trafia do archiwum (statystyki zostają), nieużywane znika 
 
 ## 5. EXP i poziomy
 
-- EXP za zadanie zależy od kategorii (tabela wyżej); zaliczenie samego minimum dnia daje połowę (w górę).
+- EXP za zadanie zależy od kategorii (tabela wyżej); zaliczenie samego minimum dnia daje połowę (w górę),
+  a kategoria z przepowiedni dnia daje +20% (sekcja 11). Wynik jest zaokrąglany do pełnego EXP.
   EXP potrzebny na poziom: 100 + 40 × (poziom − 1).
 - **Najwyższy osiągnięty poziom** (`maxLevel`) nigdy nie spada i to on odblokowuje nagrody.
 - Awans pokazuje okno z nowym tytułem, cytatem, wszystkimi nagrodami z przeskoczonych poziomów i zapowiedzią następnej.
@@ -254,7 +255,49 @@ Nie ma tur, HP gracza ani losowości — i nie ma porażki.
 | 9 | Szepcząca Księga | Umysł | Zapieczętowana karta | Księga, która czyta ciebie. Pokona ją ten, kto sam czyta i uczy się więcej. |
 | 10 | Chochlik Chaosu | Codzienność | Klucz chochlika | Przestawia rzeczy, gubi klucze, psuje plany. Rutyna to jego klatka. |
 
-## 11. Dobór nawyków (ankieta)
+## 11. Przepowiednia, znaleziska i zlecenie dnia
+
+Elementy „szczęścia” są deterministyczne: wynik wylicza się z daty (i id zadania) stałym skrótem (hash), więc ten sam dzień daje
+ten sam wynik na każdym urządzeniu, w każdej strefie czasowej i po przeładowaniu — bez zapisywania losowań w stanie gry.
+Nie ma nagród za samo otwarcie aplikacji ani niczego płatnego.
+
+### Przepowiednia dnia
+- Karta na ekranie Dziś z krótkim tekstem i kategorią dnia: zadania z tej kategorii dają tego dnia **+20% EXP**.
+- Bonus wlicza się w EXP wykonania (jedno źródło EXP), więc spójnie w poziomie, atrybutach, statystykach dnia i obrażeniach
+  strażnika tygodnia. Karta zadania pokazuje EXP z bonusem i znaczek „✦ +20%”.
+- Przepowiednie działają od 2026-10-08 — wcześniejsze dni nie dostają bonusu, żeby nie zmieniać EXP wstecz.
+
+### Znaleziska (relikty)
+- Każde wykonanie zadania ma ok. 8% szansy na relikt (osobno dla każdego zadania w każdym dniu). Rzadkość:
+  pospolity 70%, rzadki 25%, legendarny 5%. Relikty są wyłącznie kosmetyczne — nie dają EXP.
+- Przy znalezisku w trakcie sesji pokazuje się krótki komunikat u góry ekranu (nie blokuje). Kolekcja „Znaleziska” w Postępach
+  jest wyliczana z całej historii (także sprzed dodania reliktów): zdobyte z datą pierwszego znalezienia i liczbą, reszta
+  jako „???”. Relikty znalezisk to co innego niż relikty za pokonanych strażników (te są w bestiariuszu).
+
+| Relikt | Rzadkość | Opis |
+| --- | --- | --- |
+| Zardzewiały gwóźdź | pospolity | Wyrwany z drzwi starej kuźni. |
+| Odłamek żaru | pospolity | Wciąż ciepły, choć ogień dawno zgasł. |
+| Kościana kostka | pospolity | Zawsze wypada szóstka. Prawie zawsze. |
+| Pióro z popiołu | pospolity | Rozsypuje się, gdy przestajesz w nie wierzyć. |
+| Żelazny pierścień | pospolity | Zostawia na palcu ślad przysięgi. |
+| Skrzydło ćmy | pospolity | Pachnie świecą, przy której ktoś czytał do świtu. |
+| Kamień z rzeki | pospolity | Gładki od lat cierpliwego płynięcia. |
+| Woskowa pieczęć | pospolity | Odcisk herbu, którego nikt już nie pamięta. |
+| Ogarek świecy | pospolity | Wystarczy na jeszcze jedną noc. |
+| Krucze pióro | pospolity | Pisze tylko prawdę. Atrament nie jest potrzebny. |
+| Sakiewka soli | pospolity | Na progu chroni przed tym, co czai się w mroku. |
+| Wyszczerbiona runa | pospolity | Jej znaczenie zatarł czas, moc została. |
+| Fiolka krwi | rzadki | Szkło pulsuje w rytm twojego serca. |
+| Srebrny klucz | rzadki | Otwiera drzwi, których jeszcze nie znalazłeś. |
+| Wilczy kieł | rzadki | Należał do przewodnika stada, który nigdy nie zawrócił. |
+| Mapa gwiazd | rzadki | Gwiazdy na niej przesuwają się nocą. |
+| Moneta przysięgi | rzadki | Wybita dla tych, którzy dotrzymują słowa wobec siebie. |
+| Mroźna latarnia | rzadki | Świeci zimnym światłem, które nie gaśnie na wietrze. |
+| Popiół feniksa | legendarny | Garść popiołu, z której zawsze coś się odradza. |
+| Korona Zmierzchu | legendarny | Nosił ją ktoś, kto nigdy nie odpuścił. Teraz czeka na ciebie. |
+
+## 12. Dobór nawyków (ankieta)
 
 Ankieta otwiera się automatycznie po pierwszym samouczku, jeśli plan jest pusty; można ją też uruchomić z pustego planu
 („Nie wiesz od czego zacząć?”) i z Ustawień („Dobierz nawyki”). Wszystko działa lokalnie — odpowiedzi nigdzie nie wychodzą.
@@ -327,7 +370,7 @@ Ankieta otwiera się automatycznie po pierwszym samouczku, jeśli plan jest pust
 | Przygotuj rzeczy na jutro | Codzienność | Porządek dnia | wieczorem | 10 | start | codziennie | odhaczenie | praca fizyczna, nauka, zmiany | — |
 | Pobudka o stałej porze | Codzienność | Porządek dnia, Zdrowie i sen | rano (07:00) | 0 | zaawans. | codziennie | odhaczenie | — | zmiany |
 
-## 12. Podnoszenie poprzeczki
+## 13. Podnoszenie poprzeczki
 
 Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dziś) proponuje trudniejszą wersję tego samego nawyku
 (to samo zadanie — seria i historia zostają).
@@ -365,7 +408,7 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
 | Medytacja 5 min | Medytacja 10 min → Medytacja 20 min → Medytacja 30 min |
 | Sprzątanie 10 min | Sprzątanie 20 min → Sprzątanie 30 min → Sprzątanie 45 min |
 
-## 13. Synchronizacja między urządzeniami
+## 14. Synchronizacja między urządzeniami
 
 - Pierwsze urządzenie tworzy **kod** (12 znaków, bez mylących 0/O i 1/I, np. `ABCD-EFGH-JKLM`); kolejne dołączają kodem,
   linkiem `?sync=KOD` albo kodem QR. Dołączenie zastępuje lokalne dane danymi z kodu. Kod działa jak hasło.
@@ -375,7 +418,7 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
   wygrywa strona, która coś zmieniła (gdy obie — to urządzenie); osiągnięcia z najwcześniejszą datą; EXP wynika ze scalonej historii.
 - Odłączenie zostawia dane lokalnie; „Usuń wszystkie dane” usuwa je także z serwera.
 
-## 14. Przypomnienia (Web Push)
+## 15. Przypomnienia (Web Push)
 
 - Wymagają kodu synchronizacji (serwer zna wtedy aktualny plan i odhaczenia). Na iPhonie działają po zainstalowaniu aplikacji
   na ekranie początkowym.
@@ -384,7 +427,7 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
 - Serwer sprawdza co 5 minut; okno wysyłki 20 min, po godzinie startu najwyżej 10 min; każde przypomnienie
   wysyłane raz. W trybie urlopu — cisza. Powiadomienie testowe w panelu przypomnień.
 
-## 15. Ustawienia, dane i prywatność
+## 16. Ustawienia, dane i prywatność
 
 - **Ustawienia:** imię postaci, język, dźwięk, tryb urlopu, synchronizacja, aplikacja i przypomnienia, kopia zapasowa,
   dobór nawyków, poradnik, zgłoszenie problemu lub pomysłu, prywatność i regulamin, usunięcie wszystkich danych.
@@ -396,19 +439,21 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
   subskrypcje przypomnień (adres push, strefa czasowa, język, godziny) i zgłoszenia (do 12 miesięcy). Hosting: Netlify.
   Serwis nie jest dla osób poniżej 16 lat i nie udziela porad medycznych, dietetycznych ani treningowych.
 
-## 16. Pierwsze uruchomienie
+## 17. Pierwsze uruchomienie
 
 1. **Strona powitalna** (tylko przy pierwszej wizycie bez danych): „Rozpocznij wędrówkę” albo „Mam już kod” (synchronizacja).
 2. **Poradnik** (5 kroków z animowanymi podglądami): EXP i poziomy, dodawanie zadań, odhaczanie run, planowanie tygodnia, imię postaci.
    Można go pominąć i otworzyć później (stopka → Poradnik).
 3. **Ankieta doboru nawyków**, jeśli plan jest pusty.
 
-## 17. Rozwój
+## 18. Rozwój
 
 - `npm run dev` — serwer deweloperski z lokalnym API (dane w `.netlify/dev-*.json`; `/api/dev-reminders` ręcznie uruchamia przypomnienia).
 - `npm run build` — wersja produkcyjna; `npm run check:habits` — test katalogu nawyków, doboru z ankiety i łańcuchów poprzeczki
   (wszystkie kombinacje odpowiedzi, oba języki); `npm run check:bosses` — test strażnika tygodnia (granice wytrzymałości,
-  słabość, urlop i brak planu, ten sam boss w różnych strefach czasowych); `npm run docs` — przebudowa tej dokumentacji.
+  słabość, urlop i brak planu, ten sam boss w różnych strefach czasowych); `npm run check:luck` — test elementów losowych
+  (szansa i rzadkość reliktów, przepowiednia bez zmian EXP wstecz, obrażenia bossa = EXP, te same wyniki w różnych strefach
+  czasowych); `npm run docs` — przebudowa tej dokumentacji.
 - Hook `pre-commit` (`.githooks/`, włączany automatycznie przez `npm install`) przebudowuje dokumentację i dołącza ją do commita.
 - Teksty pisze się w miejscu użycia jako `t('po polsku', 'in English')`; zmiana języka przeładowuje stronę.
 - Commity po polsku; push na `main` = wdrożenie na produkcję.

@@ -3,6 +3,7 @@ import { ALL_DAYS, MINIMUM_MAX_LENGTH, autoProps, createInitialState, dayKey, is
 import { isPaused, lifetimeStats } from '../lib/stats'
 import { ACHIEVEMENTS } from '../lib/achievements'
 import { RETURN_BONUS, returnDays } from '../lib/comeback'
+import { RARITY, relicsOn } from '../lib/relics'
 import { shieldPauses } from '../lib/shields'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
@@ -311,6 +312,30 @@ export function useGame() {
     }))
     setToasts((queue) => [...queue, ...fresh])
   }, [achievementCtx, today])
+
+  // znaleziska (lib/relics.js): krótki komunikat tylko dla reliktów znalezionych w trakcie sesji —
+  // przy starcie i po północy obecne znaleziska dnia uznajemy za już znane
+  const finds = useMemo(() => relicsOn(state, today), [state.history, state.quests, today]) // eslint-disable-line react-hooks/exhaustive-deps
+  const knownFinds = useRef(null)
+  useEffect(() => {
+    if (knownFinds.current?.day !== today) {
+      knownFinds.current = { day: today, ids: new Set(finds.map((f) => f.questId)) }
+      return
+    }
+    const fresh = finds.filter((f) => !knownFinds.current.ids.has(f.questId))
+    if (!fresh.length) return
+    fresh.forEach((f) => knownFinds.current.ids.add(f.questId))
+    setToasts((queue) => [
+      ...queue,
+      ...fresh.map(({ relic, questId }) => ({
+        id: `relic-${today}-${questId}`,
+        kicker: t('Znalezisko', 'Find'),
+        name: relic.name,
+        desc: `${RARITY[relic.rarity].label} · ${relic.desc}`,
+        rune: relic.rune,
+      })),
+    ])
+  }, [finds, today])
 
   // powrót z cienia ogłaszamy raz: comebackSeen w stanie gry synchronizuje się, więc inne urządzenie go nie powtórzy
   const comebackToday = comebacks.at(-1) === today

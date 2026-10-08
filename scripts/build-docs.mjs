@@ -32,6 +32,8 @@ const shields = await lib('shields')
 const comeback = await lib('comeback')
 const bosses = await lib('bosses')
 const feedback = await lib('feedback')
+const prophecy = await lib('prophecy')
+const relics = await lib('relics')
 const push = await import(new URL('netlify/push-handler.mjs', root))
 const pkg = JSON.parse(readFileSync(new URL('package.json', root), 'utf8'))
 
@@ -166,7 +168,12 @@ const bossTable = table(
   bosses.BOSSES.map((b, i) => [i + 1, b.name, game.CATEGORIES[b.weakness].label, b.relic, b.desc]),
 )
 
-const SECTIONS = { categories, levels, achievements, classes, catalog, raiseBar, auras, quizBudget, bosses: bossTable }
+const relicTable = table(
+  ['Relikt', 'Rzadkość', 'Opis'],
+  relics.RELICS.map((r) => [r.name, relics.RARITY[r.rarity].label, r.desc]),
+)
+
+const SECTIONS = { categories, levels, achievements, classes, catalog, raiseBar, auras, quizBudget, bosses: bossTable, relics: relicTable }
 const VALUES = {
   version: pkg.version,
   habitCount: HABITS.length,
@@ -198,6 +205,15 @@ const VALUES = {
   bossMaxHp: bosses.MAX_HP,
   comboWindowSeconds: feedback.COMBO_WINDOW_MS / 1000,
   comboMax: feedback.COMBO_MAX,
+  prophecyBonus: Math.round(prophecy.PROPHECY_BONUS * 100),
+  prophecySince: prophecy.PROPHECY_SINCE,
+  relicChance: relics.RELIC_CHANCE * 100,
+  relicRarities: (() => {
+    const total = Object.values(relics.RARITY).reduce((s, r) => s + r.weight, 0)
+    return Object.values(relics.RARITY)
+      .map((r) => `${r.label} ${Math.round((r.weight / total) * 100)}%`)
+      .join(', ')
+  })(),
   reminderLeads,
   reminderEvenings,
   reminderWindow: push.WINDOW_MIN,
