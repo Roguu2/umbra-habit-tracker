@@ -10,10 +10,10 @@ import { createHash } from 'node:crypto'
 import webpush from 'web-push'
 import { existsOn, isFlexible, isPaused, isScheduledOn, weekCount } from '../src/lib/schedule.js'
 
-const LEADS = [0, 5, 15, 30]
-const EVENINGS = [null, '19:00', '20:00', '21:00', '22:00']
+export const LEADS = [0, 5, 15, 30]
+export const EVENINGS = [null, '19:00', '20:00', '21:00', '22:00']
 // funkcja uruchamia się co 5 min, ale bywa opóźniona — okno z zapasem, duplikaty blokuje `sent`
-const WINDOW_MIN = 20
+export const WINDOW_MIN = 20
 
 const json = (status, body) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } })

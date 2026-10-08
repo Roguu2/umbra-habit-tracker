@@ -21,7 +21,7 @@ function attrLevel(exp) {
   return { level, current, needed: attrExpForLevel(level) }
 }
 
-const RECENT_DAYS = 14
+export const RECENT_DAYS = 14
 
 export function attributeStats(state, today) {
   const byId = Object.fromEntries(state.quests.map((q) => [q.id, q]))
@@ -59,7 +59,7 @@ export function attributeStats(state, today) {
 
 // --- Klasa postaci: wynika z proporcji atrybutów --------------------------------
 
-const SOLO = {
+export const SOLO = {
   str: {
     name: 'Berserker',
     desc: t('Siła płynie w twoich żyłach. Ciężary uginają się przed twoją wolą.', 'Strength flows through your veins. Iron bends to your will.'),
@@ -82,7 +82,7 @@ const SOLO = {
   },
 }
 
-const PAIRS = {
+export const PAIRS = {
   'end+str': {
     name: t('Wojownik Burzy', 'Stormwarrior'),
     desc: t('Siła i wytrzymałość w jednym ciele. Pole bitwy należy do ciebie.', 'Strength and stamina in one body. The battlefield is yours.'),
@@ -109,11 +109,11 @@ const PAIRS = {
   },
 }
 
-const BALANCED = {
+export const BALANCED = {
   name: t('Paladyn Równowagi', 'Paladin of Balance'),
   desc: t('Żaden atrybut nie dominuje — rozwijasz się na wszystkich frontach.', 'No attribute dominates — you grow on every front.'),
 }
-const UNFORMED = {
+export const UNFORMED = {
   name: t('Bezimienny', 'The Nameless'),
   desc: t('Twoja ścieżka dopiero się kształtuje. Wypalaj pieczęcie, a klasa sama się objawi.', 'Your path is still taking shape. Burn the seals and your class will reveal itself.'),
 }

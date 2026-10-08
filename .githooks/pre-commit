@@ -1,0 +1,4 @@
+#!/bin/sh
+# Przed każdym commitem odświeża DOKUMENTACJA.md (z kodu i scripts/docs/template.md) i dołącza ją do commita.
+node scripts/build-docs.mjs > /dev/null || exit 1
+git add DOKUMENTACJA.md

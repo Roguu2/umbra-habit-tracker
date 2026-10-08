@@ -11,8 +11,8 @@ import { ALL_DAYS, WORK_DAYS, detectCategory } from './game.js'
 import { HABITS } from './habits.js'
 
 // ile minut dziennie naprawdę mieści się w odpowiedzi
-const ALLOWANCE = { 5: 8, 15: 20, 30: 60 }
-const SLOT_TIME = { morning: '07:30', midday: '12:30', evening: '19:30' }
+export const ALLOWANCE = { 5: 8, 15: 20, 30: 60 }
+export const SLOT_TIME = { morning: '07:30', midday: '12:30', evening: '19:30' }
 
 export function pickCount({ level, budget }) {
   if (level === 'new') return 3 // na start lepiej mało i łatwo

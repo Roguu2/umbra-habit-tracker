@@ -1,0 +1,2 @@
+# hooki gita to skrypty powłoki — muszą mieć końce linii LF także na Windows
+.githooks/* text eol=lf
