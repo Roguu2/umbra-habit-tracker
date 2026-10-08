@@ -150,8 +150,9 @@ export function useGame() {
   // dodanie lub edycja — kategoria, kolor i EXP wynikają z nazwy
   // kind: 'check' (zwykłe) | 'count' (licznik do celu) | 'avoid' (czego unikać); perWeek: X razy w tygodniu
   // minimum: krótki opis wersji minimalnej (tylko zwykłe zadania)
+  // commission: dzień przyjęcia zlecenia dnia (lib/commission.js) — tylko przy dodawaniu, edycja go nie zmienia
   const saveQuest = useCallback(
-    ({ id, name, time, days, date, steps, kind = 'check', target, unit, perWeek, minimum }) => {
+    ({ id, name, time, days, date, steps, kind = 'check', target, unit, perWeek, minimum, commission }) => {
       setState((s) => {
         const fields = {
           name,
@@ -173,6 +174,7 @@ export function useGame() {
           custom: true,
           createdAt: date && date < today ? date : today,
           archivedAt: null,
+          ...(commission === today && { commission }),
         }
         return { ...s, quests: [...s.quests, quest] }
       })

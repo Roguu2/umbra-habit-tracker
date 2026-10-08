@@ -34,6 +34,7 @@ const bosses = await lib('bosses')
 const feedback = await lib('feedback')
 const prophecy = await lib('prophecy')
 const relics = await lib('relics')
+const commission = await lib('commission')
 const push = await import(new URL('netlify/push-handler.mjs', root))
 const pkg = JSON.parse(readFileSync(new URL('package.json', root), 'utf8'))
 
@@ -207,6 +208,7 @@ const VALUES = {
   comboMax: feedback.COMBO_MAX,
   prophecyBonus: Math.round(prophecy.PROPHECY_BONUS * 100),
   prophecySince: prophecy.PROPHECY_SINCE,
+  commissionBonus: Math.round(commission.COMMISSION_BONUS * 100),
   relicChance: relics.RELIC_CHANCE * 100,
   relicRarities: (() => {
     const total = Object.values(relics.RARITY).reduce((s, r) => s + r.weight, 0)

@@ -1,4 +1,5 @@
 import { locale, t } from './i18n.js'
+import { commissionBonus } from './commission.js'
 import { prophecyBonus } from './prophecy.js'
 import { toKey } from './schedule.js'
 
@@ -26,7 +27,8 @@ export const minimumExp = (exp) => Math.ceil(exp / 2)
 export const isMinimal = (state, questId, key) => (state.minimums?.[key] ?? []).includes(questId)
 
 // mnożnik EXP wykonania w danym dniu: przepowiednia dnia (lib/prophecy.js) dla kategorii zadania
-export const expMultiplier = (quest, key) => 1 + prophecyBonus(key, quest.attr)
+// i zlecenie dnia (lib/commission.js) wykonane w dniu przyjęcia; bonusy się sumują
+export const expMultiplier = (quest, key) => 1 + prophecyBonus(key, quest.attr) + commissionBonus(quest, key)
 
 // EXP za wykonanie zadania w danym dniu (minimal — tylko wersja minimalna); jedno źródło dla EXP, atrybutów,
 // statystyk dnia i obrażeń strażnika tygodnia

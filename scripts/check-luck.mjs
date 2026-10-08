@@ -12,13 +12,16 @@ const game = await import('../src/lib/game.js')
 const relics = await import('../src/lib/relics.js')
 const prophecy = await import('../src/lib/prophecy.js')
 const bosses = await import('../src/lib/bosses.js')
+const commission = await import('../src/lib/commission.js')
 
 const DAYS = Array.from({ length: 400 }, (_, i) => game.shiftKey('2026-01-01', i))
 const QUESTS = Array.from({ length: 250 }, (_, i) => `q-${i.toString(36)}`)
 
 // tryb pomocniczy: wyniki dla stałej listy dni i zadań w strefie czasowej tego procesu
 if (process.argv[2] === '--zone') {
-  const out = DAYS.slice(0, 120).map((d) => [prophecy.prophecyFor(d)?.attr ?? '-', ...QUESTS.slice(0, 40).map((q) => relics.relicFor(d, q)?.id ?? '')].join(','))
+  const out = DAYS.slice(0, 120).map((d) =>
+    [prophecy.prophecyFor(d)?.attr ?? '-', commission.commissionsFor(d)[0].id, ...QUESTS.slice(0, 40).map((q) => relics.relicFor(d, q)?.id ?? '')].join(','),
+  )
   console.log(out.join(';'))
   process.exit(0)
 }
@@ -89,6 +92,24 @@ const weekState = stateWith({ ...daily('2026-06-01', game.shiftKey(week, -1)), .
 const expected = Object.entries(weekHistory).reduce((sum, [k, ids]) => sum + ids.reduce((s, id) => s + game.expFor(quests.find((q) => q.id === id), k), 0), 0)
 const fight = bosses.weekBoss(weekState, week, game.shiftKey(week, 2))
 check(!fight.defeated && fight.damage === expected, `obrażenia ${fight.damage} ≠ EXP ${expected} (pokonany: ${fight.defeated})`)
+
+// --- zlecenie dnia ---
+const planNames = quests.map((q) => q.name)
+for (const d of DAYS.slice(0, 60)) {
+  const candidates = commission.commissionsFor(d, planNames)
+  check(candidates.length > 1, `za mało kandydatów na zlecenie ${d}`)
+  check(!candidates.some((h) => planNames.includes(h.name)), `zlecenie ${d} jest już w planie`)
+  check(candidates.every((h) => h.lvl === 1), `zlecenie ${d} nie jest łatwe`)
+}
+const firsts = new Set(DAYS.map((d) => commission.commissionsFor(d)[0].id))
+check(firsts.size > 10, `zlecenia mało zróżnicowane: ${firsts.size} różnych`)
+const accepted = { ...quest('c', 'Rozciąganie 10 min'), commission: '2026-11-03' }
+const omenOn = (d) => prophecy.prophecyFor(d)?.attr === accepted.attr
+const withBonus = (d) => Math.round(accepted.exp * (1 + (omenOn(d) ? prophecy.PROPHECY_BONUS : 0) + (d === accepted.commission ? commission.COMMISSION_BONUS : 0)))
+for (const d of ['2026-11-02', '2026-11-03', '2026-11-04']) {
+  check(game.expFor(accepted, d) === withBonus(d), `bonus zlecenia ${d}: ${game.expFor(accepted, d)} ≠ ${withBonus(d)}`)
+}
+check(game.expFor(accepted, '2026-11-03') > game.expFor({ ...accepted, commission: null }, '2026-11-03'), 'zlecenie nie daje bonusu w dniu przyjęcia')
 
 // --- ten sam wynik w różnych strefach czasowych ---
 const byZone = ZONES.map((zone) =>

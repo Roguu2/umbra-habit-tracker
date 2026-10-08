@@ -98,7 +98,8 @@ Zadanie z historią trafia do archiwum (statystyki zostają), nieużywane znika 
 ## 5. EXP i poziomy
 
 - EXP za zadanie zależy od kategorii (tabela wyżej); zaliczenie samego minimum dnia daje połowę (w górę),
-  a kategoria z przepowiedni dnia daje +20% (sekcja 11). Wynik jest zaokrąglany do pełnego EXP.
+  kategoria z przepowiedni dnia daje +20%, a zlecenie dnia wykonane w dniu przyjęcia +25%
+  (sekcja 11; bonusy się sumują). Wynik jest zaokrąglany do pełnego EXP.
   EXP potrzebny na poziom: 100 + 40 × (poziom − 1).
 - **Najwyższy osiągnięty poziom** (`maxLevel`) nigdy nie spada i to on odblokowuje nagrody.
 - Awans pokazuje okno z nowym tytułem, cytatem, wszystkimi nagrodami z przeskoczonych poziomów i zapowiedzią następnej.
@@ -297,6 +298,14 @@ Nie ma nagród za samo otwarcie aplikacji ani niczego płatnego.
 | Popiół feniksa | legendarny | Garść popiołu, z której zawsze coś się odradza. |
 | Korona Zmierzchu | legendarny | Nosił ją ktoś, kto nigdy nie odpuścił. Teraz czeka na ciebie. |
 
+### Zlecenie dnia
+- Raz dziennie karta na ekranie Dziś proponuje jeden łatwy nawyk z katalogu (sekcja 12), którego nie ma w planie; kolejność
+  kandydatów wynika z daty. Przyciski: „Dodaj do planu”, „↻ Inne” (jedna zmiana dziennie) i „Nie teraz” (ukrywa do końca
+  dnia na tym urządzeniu — tak jak podpowiedź słabego punktu). W trybie urlopu karta się nie pokazuje.
+- Przyjęte zlecenie to zwykłe zadanie w planie z zapamiętanym dniem przyjęcia (`quest.commission`). Jego wykonanie w tym dniu
+  daje **+25% EXP** — liczone z historii jak każdy EXP; bonus sumuje się z przepowiednią dnia.
+  Po przyjęciu karta pokazuje postęp zlecenia zamiast nowej propozycji.
+
 ## 12. Dobór nawyków (ankieta)
 
 Ankieta otwiera się automatycznie po pierwszym samouczku, jeśli plan jest pusty; można ją też uruchomić z pustego planu
@@ -452,7 +461,7 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
 - `npm run build` — wersja produkcyjna; `npm run check:habits` — test katalogu nawyków, doboru z ankiety i łańcuchów poprzeczki
   (wszystkie kombinacje odpowiedzi, oba języki); `npm run check:bosses` — test strażnika tygodnia (granice wytrzymałości,
   słabość, urlop i brak planu, ten sam boss w różnych strefach czasowych); `npm run check:luck` — test elementów losowych
-  (szansa i rzadkość reliktów, przepowiednia bez zmian EXP wstecz, obrażenia bossa = EXP, te same wyniki w różnych strefach
+  (szansa i rzadkość reliktów, przepowiednia bez zmian EXP wstecz, zlecenie dnia, obrażenia bossa = EXP, te same wyniki w różnych strefach
   czasowych); `npm run docs` — przebudowa tej dokumentacji.
 - Hook `pre-commit` (`.githooks/`, włączany automatycznie przez `npm install`) przebudowuje dokumentację i dołącza ją do commita.
 - Teksty pisze się w miejscu użycia jako `t('po polsku', 'in English')`; zmiana języka przeładowuje stronę.

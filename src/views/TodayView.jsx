@@ -6,6 +6,7 @@ import WeakSpotHint from '../components/WeakSpotHint'
 import RaiseBar from '../components/RaiseBar'
 import WeeklyBoss from '../components/WeeklyBoss'
 import Prophecy from '../components/Prophecy'
+import CommissionCard from '../components/CommissionCard'
 import { MiniRune, Panel, ShieldIcon } from '../components/ui'
 import { formatDay, partOfDay, shiftKey } from '../lib/game'
 import { byTime, dayStats, perfectDayStreak, questStreaks, weekCount } from '../lib/stats'
@@ -153,6 +154,7 @@ export default function TodayView({ game, onEdit, onOpenPlan, onOpenQuiz }) {
         <Prophecy today={today} />
         <Streak state={state} today={today} maxLevel={game.maxLevel} seals={game.life.seals} comebackToday={game.comebackToday} onShield={actions.spendShields} />
         <WeeklyBoss state={state} today={today} />
+        <CommissionCard state={state} today={today} onAdd={actions.saveQuest} />
         <Tomorrow state={state} today={today} onOpenPlan={onOpenPlan} />
         <RaiseBar state={state} today={today} onRaise={actions.raiseBar} />
         <WeakSpotHint state={state} today={today} onAdd={actions.saveQuest} panel />
