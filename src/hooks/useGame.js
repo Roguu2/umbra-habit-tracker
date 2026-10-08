@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ALL_DAYS, MINIMUM_MAX_LENGTH, autoProps, createInitialState, dayKey, isMinimal, levelFromExp, migrateState, shiftKey, totalExpOf } from '../lib/game'
 import { isPaused, lifetimeStats } from '../lib/stats'
 import { ACHIEVEMENTS } from '../lib/achievements'
+import { defeatedBosses } from '../lib/bosses'
 import { RETURN_BONUS, returnDays } from '../lib/comeback'
-import { RARITY, relicsOn } from '../lib/relics'
-import { shieldPauses } from '../lib/shields'
+import { RARITY, relicCollection, relicsOn } from '../lib/relics'
+import { shieldPauses, shieldsUsed } from '../lib/shields'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
 import { useSync } from './useSync'
@@ -292,7 +293,38 @@ export function useGame() {
 
   const life = useMemo(() => lifetimeStats(state, today), [state, today])
 
-  const achievementCtx = useMemo(() => ({ life, level, bestWeek: life.bestWeek }), [life, level])
+  // pora odhaczenia nie trafia do historii, więc osiągnięcia "o świcie" i "po północy" łapiemy w trakcie sesji:
+  // gdy dziś przybywa wykonań, sprawdzamy zegar (zdobyte zostają potem w state.achievements jak każde inne)
+  const [events, setEvents] = useState(() => new Set())
+  const doneToday = (state.history[today] ?? []).length
+  const lastDone = useRef({ day: today, count: doneToday })
+  useEffect(() => {
+    const previous = lastDone.current
+    lastDone.current = { day: today, count: doneToday }
+    if (previous.day !== today || doneToday <= previous.count) return
+    const hour = new Date().getHours()
+    const event = hour < 4 ? 'midnight' : hour < 6 ? 'dawn' : null
+    if (event) setEvents((current) => (current.has(event) ? current : new Set([...current, event])))
+  }, [doneToday, today])
+
+  const defeated = useMemo(() => defeatedBosses(state, today), [state, today])
+  const relicKinds = useMemo(() => relicCollection(state), [state.history, state.quests]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const achievementCtx = useMemo(
+    () => ({
+      life,
+      level,
+      bestWeek: life.bestWeek,
+      comebacks: comebacks.length,
+      bosses: defeated.length,
+      bossKinds: new Set(defeated.map((w) => w.boss.id)).size,
+      relicKinds: relicKinds.size,
+      legendaryRelic: [...relicKinds.values()].some((r) => r.relic.rarity === 'legendary'),
+      shieldsUsed: shieldsUsed(state),
+      events,
+    }),
+    [life, level, comebacks, defeated, relicKinds, state, events],
+  )
 
   const [toasts, setToasts] = useState([])
 

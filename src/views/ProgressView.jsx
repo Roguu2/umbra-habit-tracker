@@ -69,9 +69,13 @@ function Achievements({ state, ctx }) {
             >
               <MiniRune rune={a.rune} tier="gold" lit={!!at} size="size-9" />
               <div className="min-w-0 flex-1">
-                <p className={`truncate font-display text-[12px] font-bold ${at ? 'text-gold-bright' : 'text-white/55'}`}>{a.name}</p>
+                <p className={`truncate font-display text-[12px] font-bold ${at ? 'text-gold-bright' : 'text-white/55'}`}>
+                  {a.hidden && !at ? '???' : a.name}
+                </p>
                 {at ? (
                   <p className="text-[10px] text-gold/60">{formatDay(at, { day: 'numeric', month: 'short' })}</p>
+                ) : a.hidden ? (
+                  <p className="truncate text-[10px] text-white/30">{t('Ukryte osiągnięcie', 'Hidden achievement')}</p>
                 ) : (
                   <p className="truncate text-[10px] text-white/35">
                     {a.desc} <span className="tabular-nums">({Math.min(value, goal)}/{goal})</span>

@@ -158,27 +158,47 @@ export function dayOutcome(state, key) {
   return { counted: scheduled > 0, perfect: scheduled > 0 && missed === 0, done: doneIds.length }
 }
 
-const perfectOn = (state, key) => dayOutcome(state, key).perfect
+const ALL_ATTRS = 5 // Siła, Kondycja, Zdrowie, Umysł, Codzienność
 
-// jedno przejście po całej historii: pełne dni i najlepszy tydzień (pn–nd)
+// jedno przejście po całej historii: pełne dni, najlepszy tydzień (pn–nd) i rekord passy
 export function lifetimeStats(state, today = dayKey()) {
   const startedAt = state.profile.startedAt
   let perfectDays = 0
   let bestWeek = 0
   let week = 0
+  let run = 0
+  let bestRun = 0
   const keys = keysBetween(weekKeys(startedAt)[0], today)
   keys.forEach((k, i) => {
     if (i % 7 === 0) week = 0
-    const perfect = perfectOn(state, k)
-    if (perfect) bestWeek = Math.max(bestWeek, ++week)
-    if (k >= startedAt && perfect) perfectDays++
+    const day = dayOutcome(state, k)
+    if (day.perfect) bestWeek = Math.max(bestWeek, ++week)
+    if (k < startedAt) return
+    if (day.perfect) perfectDays++
+    // rekord passy — te same reguły co perfectDayStreak (dni neutralne pomijamy, dzisiejszy dzień jeszcze trwa)
+    if (day.perfect) bestRun = Math.max(bestRun, ++run)
+    else if (day.counted && k !== today) run = 0
   })
+
+  const byId = questIndex(state)
+  let minimumsUsed = 0
+  let allAttrsDay = false
+  for (const [key, ids] of Object.entries(state.history)) {
+    const done = ids.filter((id) => byId[id])
+    minimumsUsed += done.filter((id) => (state.minimums?.[key] ?? []).includes(id)).length
+    if (!allAttrsDay && new Set(done.map((id) => byId[id].attr)).size === ALL_ATTRS) allAttrsDay = true
+  }
+
   return {
     perfectDays,
     seals: sealsOf(state),
     bestWeek,
+    bestPerfectRun: bestRun,
     bestStreak: Math.max(0, ...state.quests.map((q) => questStreaks(state, q, today).best)),
     created: state.quests.filter((q) => q.custom).length,
     plannedAhead: state.quests.some((q) => q.date && q.date > q.createdAt),
+    allAttrsDay,
+    minimumsUsed,
+    commissionsDone: state.quests.filter((q) => q.commission && (state.history[q.commission] ?? []).includes(q.id)).length,
   }
 }

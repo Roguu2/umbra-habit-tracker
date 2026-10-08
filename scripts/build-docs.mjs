@@ -80,8 +80,8 @@ const levels = table(
 )
 
 const achievements = table(
-  ['Osiągnięcie', 'Warunek', 'Id'],
-  ACHIEVEMENTS.map((a) => [a.name, a.desc, `\`${a.id}\``]),
+  ['Osiągnięcie', 'Warunek', 'Ukryte', 'Id'],
+  ACHIEVEMENTS.map((a) => [a.name, a.desc, a.hidden ? 'tak' : '—', `\`${a.id}\``]),
 )
 
 const classes = [
@@ -209,6 +209,8 @@ const VALUES = {
   prophecyBonus: Math.round(prophecy.PROPHECY_BONUS * 100),
   prophecySince: prophecy.PROPHECY_SINCE,
   commissionBonus: Math.round(commission.COMMISSION_BONUS * 100),
+  achievementCount: `${ACHIEVEMENTS.length} ${plural(ACHIEVEMENTS.length, ['osiągnięcie', 'osiągnięcia', 'osiągnięć'], [])}`,
+  achievementHidden: ACHIEVEMENTS.filter((a) => a.hidden).length,
   relicChance: relics.RELIC_CHANCE * 100,
   relicRarities: (() => {
     const total = Object.values(relics.RARITY).reduce((s, r) => s + r.weight, 0)

@@ -206,22 +206,48 @@ Nawyk z podpowiedzi startuje łagodniej: nawyki „X razy w tygodniu” powyżej
 
 ## 9. Osiągnięcia
 
-| Osiągnięcie | Warunek | Id |
-| --- | --- | --- |
-| Pierwsza krew | Wykonaj pierwsze zadanie. | `first-seal` |
-| Krąg pięćdziesięciu | Wykonaj 50 zadań. | `seals-50` |
-| Ściana run | Wykonaj 200 zadań. | `seals-200` |
-| Dzień bez skazy | Wykonaj cały plan dnia. | `perfect-1` |
-| Dziesięć nieskalanych | Zalicz 10 pełnych dni. | `perfect-10` |
-| Siedem nocy | Seria 7 w jednym nawyku. | `streak-7` |
-| Księżycowy cykl | Seria 30 w jednym nawyku. | `streak-30` |
-| Krwawy Księżyc | Osiągnij 5. poziom. | `level-5` |
-| Głos Otchłani | Osiągnij 10. poziom. | `level-10` |
-| Kowal przysiąg | Dodaj własne zadanie do planu. | `forge-1` |
-| Strateg | Zaplanuj coś na przyszły dzień. | `planner` |
-| Tydzień chwały | 5 pełnych dni w jednym tygodniu. | `week-goal` |
+32 osiągnięcia, w tym 6 ukrytych — do zdobycia widocznych jako „???” („Ukryte osiągnięcie”, bez postępu).
+Prawie wszystkie wynikają z historii (wykonania, pełne dni, passa, serie, poziom, powroty z cienia, tarcze, pokonani strażnicy,
+znaleziska, minimum dnia, zlecenia). Wyjątek to pora dnia („Świt wędrowca”, „Dziecię nocy”): historia nie zapisuje godziny
+wykonania, więc te dwa łapane są w chwili odhaczenia w otwartej aplikacji, a po zdobyciu zostają zapisane jak każde inne.
 
-Osiągnięcie zdobyte na innym urządzeniu (przez synchronizację) nie jest ogłaszane ponownie.
+| Osiągnięcie | Warunek | Ukryte | Id |
+| --- | --- | --- | --- |
+| Pierwsza krew | Wykonaj pierwsze zadanie. | — | `first-seal` |
+| Krąg pięćdziesięciu | Wykonaj 50 zadań. | — | `seals-50` |
+| Ściana run | Wykonaj 200 zadań. | — | `seals-200` |
+| Dzień bez skazy | Wykonaj cały plan dnia. | — | `perfect-1` |
+| Dziesięć nieskalanych | Zalicz 10 pełnych dni. | — | `perfect-10` |
+| Siedem nocy | Seria 7 w jednym nawyku. | — | `streak-7` |
+| Księżycowy cykl | Seria 30 w jednym nawyku. | — | `streak-30` |
+| Krwawy Księżyc | Osiągnij 5. poziom. | — | `level-5` |
+| Głos Otchłani | Osiągnij 10. poziom. | — | `level-10` |
+| Kowal przysiąg | Dodaj własne zadanie do planu. | — | `forge-1` |
+| Strateg | Zaplanuj coś na przyszły dzień. | — | `planner` |
+| Tydzień chwały | 5 pełnych dni w jednym tygodniu. | — | `week-goal` |
+| Świt wędrowca | Wykonaj zadanie między 4:00 a 6:00. | — | `dawn` |
+| Dziecię nocy | Wykonaj zadanie między północą a 4:00. | tak | `midnight` |
+| Pięć run | Jednego dnia wykonaj zadania ze wszystkich pięciu kategorii. | — | `all-attrs` |
+| Pół tysiąca pieczęci | Wykonaj 500 zadań. | — | `seals-500` |
+| Tysiąc pieczęci | Wykonaj 1000 zadań. | — | `seals-1000` |
+| Miesiąc bez skazy | Zalicz 30 pełnych dni. | — | `perfect-30` |
+| Dwa tygodnie ognia | Utrzymaj passę 14 pełnych dni z rzędu. | — | `passa-14` |
+| Dwa księżyce | Seria 60 w jednym nawyku. | — | `streak-60` |
+| Wieczny płomień | Osiągnij 20. poziom. | — | `level-20` |
+| Feniks | Wróć z cienia po utracie passy. | tak | `comeback-1` |
+| Niezłomny | Wróć z cienia trzy razy. | tak | `comeback-3` |
+| Tarcza w potrzebie | Ocal passę tarczą. | tak | `shield-1` |
+| Pogromca strażnika | Pokonaj strażnika tygodnia. | — | `boss-1` |
+| Łowca strażników | Pokonaj 5 strażników tygodnia. | — | `boss-5` |
+| Pan bestiariusza | Pokonaj każdego z 10 strażników. | tak | `boss-all` |
+| Pierwsze znalezisko | Znajdź relikt. | — | `relic-1` |
+| Kolekcjoner | Zbierz 10 różnych reliktów. | — | `relic-10` |
+| Dotyk legendy | Znajdź legendarny relikt. | tak | `relic-legend` |
+| Mały krok | Zalicz minimum dnia 5 razy. | — | `minimum-5` |
+| Najemnik | Wykonaj zlecenie dnia. | — | `commission-1` |
+
+Osiągnięcie zdobyte na innym urządzeniu (przez synchronizację) nie jest ogłaszane ponownie. Osiągnięcia dodane w nowej wersji
+aplikacji, które już wynikają z historii, odblokowują się przy pierwszym uruchomieniu.
 
 ## 10. Strażnik tygodnia (boss)
 

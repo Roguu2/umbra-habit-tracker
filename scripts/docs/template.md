@@ -155,9 +155,15 @@ Nawyk z podpowiedzi startuje łagodniej: nawyki „X razy w tygodniu” powyżej
 
 ## 9. Osiągnięcia
 
+{{achievementCount}}, w tym {{achievementHidden}} ukrytych — do zdobycia widocznych jako „???” („Ukryte osiągnięcie”, bez postępu).
+Prawie wszystkie wynikają z historii (wykonania, pełne dni, passa, serie, poziom, powroty z cienia, tarcze, pokonani strażnicy,
+znaleziska, minimum dnia, zlecenia). Wyjątek to pora dnia („Świt wędrowca”, „Dziecię nocy”): historia nie zapisuje godziny
+wykonania, więc te dwa łapane są w chwili odhaczenia w otwartej aplikacji, a po zdobyciu zostają zapisane jak każde inne.
+
 {{achievements}}
 
-Osiągnięcie zdobyte na innym urządzeniu (przez synchronizację) nie jest ogłaszane ponownie.
+Osiągnięcie zdobyte na innym urządzeniu (przez synchronizację) nie jest ogłaszane ponownie. Osiągnięcia dodane w nowej wersji
+aplikacji, które już wynikają z historii, odblokowują się przy pierwszym uruchomieniu.
 
 ## 10. Strażnik tygodnia (boss)
 
