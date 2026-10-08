@@ -84,6 +84,17 @@ Zadanie z historią trafia do archiwum (statystyki zostają), nieużywane znika 
 - **Jutro:** podgląd zaplanowanych zadań i skrót do planowania.
 - Aplikacja sama przechodzi na nowy dzień po północy (sprawdza datę co 30 s).
 
+### Efekt odhaczenia i combo
+- Odhaczenie pieczęci daje uderzenie w kowadło, iskry, falę i (na telefonie) krótką wibrację. Siła rośnie z EXP zadania:
+  zwykłe zadania (ok. 15–25 EXP) mają subtelny efekt, trudne (40 EXP i więcej) — więcej iskier, mocniejszy dźwięk.
+- **Combo:** kolejne odhaczenia tego samego dnia w odstępach do 90 s wzmacniają efekt — wyższy ton,
+  dodatkowe dźwięczenie, więcej iskier, kolor przechodzący w złoto i napis „Combo ×N” (do ×5). Combo żyje tylko
+  w pamięci — nic nie jest zapisywane i nie wpływa na EXP.
+- **Finał dnia:** zdobycie pełnego dnia w trakcie sesji kończy się krótkim rozbłyskiem pierścienia w HUD i fanfarą
+  (krótszą niż przy awansie). Po przeładowaniu strony z już pełnym dniem finał się nie powtarza.
+- Wszystko szanuje ustawienia: wyciszony dźwięk wyłącza też wibracje, a przy `prefers-reduced-motion` zostaje tylko
+  krótki błysk (bez iskier, fal i wibracji).
+
 ## 5. EXP i poziomy
 
 - EXP za zadanie zależy od kategorii (tabela wyżej); zaliczenie samego minimum dnia daje połowę (w górę).

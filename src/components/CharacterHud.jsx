@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import ExpBar from './ExpBar'
+import { vibrate } from '../lib/feedback'
 import { sigilFor } from '../lib/rewards'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
@@ -150,10 +151,55 @@ function Sigil({ level, maxLevel }) {
   )
 }
 
+// rozbłysk pierścienia przy zdobyciu dnia: 12 iskier i dwie fale (~0,9 s), krótszy niż awans
+const FINALE_SPARKS = Array.from({ length: 12 }, (_, i) => (i / 12) * Math.PI * 2)
+
 function DailyRing({ ratio, doneCount, questCount, complete }) {
+  const reduceMotion = useReducedMotion()
+  // finał tylko przy zdobyciu dnia w trakcie sesji — nie po przeładowaniu strony z już pełnym dniem
+  const [finale, setFinale] = useState(0)
+  const wasComplete = useRef(complete)
+  useEffect(() => {
+    if (complete && !wasComplete.current) {
+      // po ostatnim uderzeniu pieczęci, żeby dźwięki się nie nałożyły
+      const id = setTimeout(() => {
+        setFinale((n) => n + 1)
+        sfx.dayComplete()
+        vibrate([20, 60, 20, 60, 40])
+      }, 450)
+      wasComplete.current = complete
+      return () => clearTimeout(id)
+    }
+    wasComplete.current = complete
+  }, [complete])
+
   return (
     <div className="col-span-2 flex items-center gap-4 lg:col-span-1 lg:-mt-10 lg:flex-col lg:gap-2">
       <div className="relative size-20">
+        {finale > 0 && !reduceMotion && (
+          <span key={finale} className="pointer-events-none absolute inset-0">
+            {[0, 0.15].map((delay) => (
+              <motion.span
+                key={delay}
+                className="absolute inset-0 rounded-full border border-gold-bright"
+                style={{ boxShadow: '0 0 18px rgba(226,180,90,0.6)' }}
+                initial={{ scale: 0.8, opacity: 0.9 }}
+                animate={{ scale: 1.9, opacity: 0 }}
+                transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
+              />
+            ))}
+            {FINALE_SPARKS.map((angle) => (
+              <motion.span
+                key={angle}
+                className="absolute left-1/2 top-1/2 size-1.5 rounded-full bg-gold-bright"
+                style={{ marginLeft: -3, marginTop: -3, boxShadow: '0 0 8px #e2b45a' }}
+                initial={{ x: 0, y: 0, opacity: 1 }}
+                animate={{ x: Math.cos(angle) * 64, y: Math.sin(angle) * 64, opacity: 0 }}
+                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+              />
+            ))}
+          </span>
+        )}
         <svg viewBox="0 0 80 80" className="size-full -rotate-90">
           <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="4" />
           <motion.circle

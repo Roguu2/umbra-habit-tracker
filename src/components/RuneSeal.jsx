@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { RUNES, TIERS } from '../lib/game'
 
 const OUT = [0.16, 1, 0.3, 1]
 
 // Pieczęć zastępująca checkbox: przygaszona runa, która po aktywacji "wypala się" w kolorze krwi lub złota.
-export default function RuneSeal({ rune, tier, done, burstKey, onToggle, label }) {
+// combo / weight: siła efektu ostatniego odhaczenia (lib/feedback.js)
+export default function RuneSeal({ rune, tier, done, burstKey, combo = 1, weight = 0, onToggle, label }) {
   const c = TIERS[tier]
   const path = RUNES[rune % RUNES.length]
 
@@ -88,19 +89,42 @@ export default function RuneSeal({ rune, tier, done, burstKey, onToggle, label }
         />
       </motion.svg>
 
-      {burstKey > 0 && <Burst key={`burst-${burstKey}`} color={c} />}
+      {burstKey > 0 && <Burst key={`burst-${burstKey}`} color={comboColor(c, combo)} combo={combo} weight={weight} />}
     </motion.button>
   )
 }
 
-function Burst({ color }) {
-  const [sparks] = useState(() =>
-    Array.from({ length: 14 }, (_, i) => {
-      const angle = (i / 14) * Math.PI * 2 + Math.random() * 0.35
-      const dist = 38 + Math.random() * 26
+// combo przechodzi z koloru zadania w złoto, a przy maksymalnym w białe złoto
+function comboColor(color, combo) {
+  if (combo >= 5) return { main: '#ffe3a0', bright: '#fff6dc', glow: 'rgba(255, 227, 160, 0.7)' }
+  if (combo >= 3) return TIERS.gold
+  return color
+}
+
+function Burst({ color, combo, weight }) {
+  const reduceMotion = useReducedMotion()
+  // trudniejsze zadanie i dłuższe combo — więcej i dalej lecących iskier; zwykłe zadanie zostaje subtelne
+  const [sparks] = useState(() => {
+    const count = 10 + Math.round(8 * weight) + 3 * (combo - 1)
+    const reach = 1 + 0.35 * weight + 0.08 * (combo - 1)
+    return Array.from({ length: count }, (_, i) => {
+      const angle = (i / count) * Math.PI * 2 + Math.random() * 0.35
+      const dist = (38 + Math.random() * 26) * reach
       return { x: Math.cos(angle) * dist, y: Math.sin(angle) * dist, size: 2 + Math.random() * 2.5, d: 0.6 + Math.random() * 0.4 }
-    }),
-  )
+    })
+  })
+
+  // przy prefers-reduced-motion tylko krótki błysk, bez fal i iskier
+  if (reduceMotion) {
+    return (
+      <motion.span
+        className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle,#fff_0%,rgba(255,255,255,0)_60%)]"
+        initial={{ opacity: 0.8 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 0.4 }}
+      />
+    )
+  }
 
   return (
     <span className="pointer-events-none absolute inset-0">
@@ -111,8 +135,8 @@ function Burst({ color }) {
         animate={{ scale: 1.9, opacity: 0 }}
         transition={{ duration: 0.5, ease: OUT }}
       />
-      {/* fale uderzeniowe */}
-      {[0, 0.12].map((delay) => (
+      {/* fale uderzeniowe — trzecia przy dłuższym combo */}
+      {(combo >= 3 ? [0, 0.12, 0.24] : [0, 0.12]).map((delay) => (
         <motion.span
           key={delay}
           className="absolute inset-0 rounded-full border"

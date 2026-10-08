@@ -31,6 +31,7 @@ const rewards = await lib('rewards')
 const shields = await lib('shields')
 const comeback = await lib('comeback')
 const bosses = await lib('bosses')
+const feedback = await lib('feedback')
 const push = await import(new URL('netlify/push-handler.mjs', root))
 const pkg = JSON.parse(readFileSync(new URL('package.json', root), 'utf8'))
 
@@ -195,6 +196,8 @@ const VALUES = {
   bossNewPlayerHp: bosses.NEW_PLAYER_HP,
   bossMinHp: bosses.MIN_HP,
   bossMaxHp: bosses.MAX_HP,
+  comboWindowSeconds: feedback.COMBO_WINDOW_MS / 1000,
+  comboMax: feedback.COMBO_MAX,
   reminderLeads,
   reminderEvenings,
   reminderWindow: push.WINDOW_MIN,

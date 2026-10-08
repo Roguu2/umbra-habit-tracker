@@ -201,11 +201,22 @@ const play =
   }
 
 export const sfx = {
-  // odhaczenie zadania — uderzenie w kowadło i iskry (krew: ciężej i niżej, złoto: jaśniej)
-  seal: play((tier = 'blood') => {
-    if (tier === 'gold') strike(0, { pitch: 900, power: 0.95, ring: 1.6 })
-    else strike(0, { pitch: 520, power: 1.25, ring: 1.3 })
-    sparks(0.01, 16, 0.5, 0.14)
+  // odhaczenie zadania — uderzenie w kowadło i iskry (krew: ciężej i niżej, złoto: jaśniej).
+  // combo (1–5) podnosi ton i dokłada dźwięczenie, weight (0–1, z EXP zadania) dodaje mocy i iskier.
+  seal: play((tier = 'blood', { combo = 1, weight = 0 } = {}) => {
+    const up = 1 + 0.06 * (combo - 1)
+    if (tier === 'gold') strike(0, { pitch: 900 * up, power: 0.85 + 0.3 * weight, ring: 1.6 })
+    else strike(0, { pitch: 520 * up, power: 1.1 + 0.35 * weight, ring: 1.3 })
+    sparks(0.01, 14 + Math.round(10 * weight) + 3 * (combo - 1), 0.5 + 0.2 * weight, 0.14)
+    if (combo > 1) ting(0.07, 1600 * Math.pow(2, (2 * (combo - 1)) / 12), 0.05 + 0.01 * combo)
+  }),
+
+  // pełny dzień — krótki finał (dwa wznoszące uderzenia i iskry), wyraźnie krótszy niż awans
+  dayComplete: play(() => {
+    strike(0, { pitch: 660, power: 0.7, ring: 1.4 })
+    strike(0.16, { pitch: 990, power: 0.8, ring: 1.9 })
+    ting(0.18, 2640, 0.07)
+    sparks(0.17, 26, 0.7, 0.13)
   }),
 
   // odznaczenie — głuche stuknięcie, jak młot o skórzany fartuch

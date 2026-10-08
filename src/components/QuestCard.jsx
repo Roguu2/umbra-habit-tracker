@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion'
 import RuneSeal from './RuneSeal'
-import { CATEGORIES, TIERS, minimumExp } from '../lib/game'
+import { CATEGORIES, TIERS, dayKey, minimumExp } from '../lib/game'
+import { registerCheck, vibrate, weightOf } from '../lib/feedback'
 import { sfx } from '../lib/sfx'
 import { plural, t } from '../lib/i18n'
 
@@ -28,7 +29,9 @@ export default function QuestCard({
   reorder,
 }) {
   const dragControls = useDragControls()
-  const [burstKey, setBurstKey] = useState(0)
+  // burst: { key, combo, weight } — efekt ostatniego odhaczenia (lib/feedback.js)
+  const [burst, setBurst] = useState({ key: 0, combo: 1, weight: 0 })
+  const burstKey = burst.key
   const [open, setOpen] = useState(false)
   const c = TIERS[quest.tier]
   const hasSteps = quest.steps.length > 0
@@ -39,13 +42,16 @@ export default function QuestCard({
   const prevDone = useRef(done)
   useEffect(() => {
     if (done && !prevDone.current) {
-      setBurstKey((k) => k + 1)
-      sfx.seal(quest.tier)
+      const combo = registerCheck(dayKey())
+      const weight = weightOf(exp)
+      setBurst((b) => ({ key: b.key + 1, combo, weight }))
+      sfx.seal(quest.tier, { combo, weight })
+      vibrate(combo > 1 ? [14, 40, 14 + 6 * combo] : [Math.round(10 + 20 * weight)])
     } else if (!done && prevDone.current) {
       sfx.unseal()
     }
     prevDone.current = done
-  }, [done, quest.tier])
+  }, [done, quest.tier, exp])
 
   const toggleOpen = () => {
     if (!hasSteps) return
@@ -149,6 +155,8 @@ export default function QuestCard({
           tier={quest.tier}
           done={done}
           burstKey={burstKey}
+          combo={burst.combo}
+          weight={burst.weight}
           onToggle={() => onToggle(quest.id)}
           label={
             quest.kind === 'avoid'
@@ -340,6 +348,11 @@ export default function QuestCard({
             transition={{ duration: 1.4, ease: 'easeOut' }}
           >
             +{exp} EXP
+            {burst.combo > 1 && (
+              <span className="ml-2 text-[11px] tracking-[0.2em] text-gold-bright uppercase">
+                {t('Combo', 'Combo')} ×{burst.combo}
+              </span>
+            )}
           </motion.span>
         )}
       </AnimatePresence>
