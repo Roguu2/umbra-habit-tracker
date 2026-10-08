@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import QrCode from './QrCode'
+import { useEscape } from '../hooks/useEscape'
 import { formatCode, shareLink } from '../lib/sync'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
@@ -61,11 +62,7 @@ function PanelBody({ sync, initialCode, onClose }) {
   const [copied, setCopied] = useState(null)
   const [confirmLeave, setConfirmLeave] = useState(false)
 
-  useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  useEscape(onClose)
 
   const run = async (action) => {
     setPending(true)

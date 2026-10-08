@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { RewardIcon } from './RewardPath'
+import { useEscape } from '../hooks/useEscape'
 import { LEVEL_UP_LINES, titleFor } from '../lib/game'
 import { nextReward, rewardsBetween } from '../lib/rewards'
 import { sfx } from '../lib/sfx'
@@ -8,12 +9,7 @@ import { t } from '../lib/i18n'
 
 // levelUp: { level, from } z useGame; aura: noszona aura (żeby oznaczyć ją przy nagrodach)
 export default function LevelUpModal({ levelUp, aura, onWear, onClose }) {
-  useEffect(() => {
-    if (!levelUp) return
-    const onKey = (e) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [levelUp, onClose])
+  useEscape(onClose, Boolean(levelUp))
 
   return (
     <AnimatePresence>

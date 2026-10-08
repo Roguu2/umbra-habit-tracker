@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useEscape } from '../hooks/useEscape'
 import { t } from '../lib/i18n'
 
 // Wspólne okno dialogowe w stylu HUD. Treść przewija się, gdy nie mieści się na ekranie.
@@ -8,11 +8,7 @@ export default function Modal({ open, title, onClose, wide = false, children }) 
 }
 
 function Body({ title, onClose, wide, children }) {
-  useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  useEscape(onClose)
 
   return (
     <motion.div

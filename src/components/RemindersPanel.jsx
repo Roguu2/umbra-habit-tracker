@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Segmented } from './ui'
 import { GhostButton } from './SyncPanel'
+import { useEscape } from '../hooks/useEscape'
 import { isIOS } from '../lib/push'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
@@ -39,11 +40,7 @@ export default function RemindersPanel({ open, push, hasCode, onClose }) {
 function PanelBody({ push, hasCode, onClose }) {
   const [tested, setTested] = useState(false)
 
-  useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  useEscape(onClose)
 
   const toggle = async () => {
     const ok = await (push.prefs.enabled ? push.disable() : push.enable())

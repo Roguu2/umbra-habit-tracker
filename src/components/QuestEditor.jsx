@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import DayPicker from './DayPicker'
 import { Segmented } from './ui'
 import { ALL_DAYS, CATEGORIES, MINIMUM_MAX_LENGTH, WORK_DAYS, dayKey, detectCategory, formatDay } from '../lib/game'
+import { useEscape } from '../hooks/useEscape'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
 
@@ -41,12 +42,14 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
   const [confirmRemove, setConfirmRemove] = useState(false)
   const nameRef = useRef(null)
 
+  useEscape(onClose)
+
+  // fokus na nazwie tylko raz, przy otwarciu nowego zadania — przy edycji nie zabieramy fokusu
   useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
-    setTimeout(() => nameRef.current?.focus(), 80)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+    if (editing) return
+    const id = setTimeout(() => nameRef.current?.focus(), 80)
+    return () => clearTimeout(id)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const category = name.trim() ? CATEGORIES[detectCategory(name)] : null
   const valid = name.trim() && (repeat !== 'custom' || days.length > 0) && (kind !== 'count' || Number(target) >= 2)
