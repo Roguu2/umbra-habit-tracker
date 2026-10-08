@@ -146,7 +146,29 @@ Nawyk z podpowiedzi startuje łagodniej: nawyki „X razy w tygodniu” powyżej
 
 Osiągnięcie zdobyte na innym urządzeniu (przez synchronizację) nie jest ogłaszane ponownie.
 
-## 10. Dobór nawyków (ankieta)
+## 10. Strażnik tygodnia (boss)
+
+Lekki cel tygodnia (pn–nd) na ekranie Dziś: pasek wytrzymałości bossa, który topnieje od prawdziwych wykonań zadań.
+Nie ma tur, HP gracza ani losowości — i nie ma porażki.
+
+- **Boss tygodnia** wybierany jest deterministycznie z numeru tygodnia (liczonego z daty poniedziałku w UTC), więc
+  w danym tygodniu wszyscy i na każdym urządzeniu mają tego samego bossa. Słabości rotują co tydzień.
+- **Obrażenia** = EXP każdego wykonania z bieżącego tygodnia (minimum dnia liczy się tak jak w EXP, a zadania spoza planu
+  i nawyki „X razy w tygodniu” też ranią). Zadania z atrybutu będącego słabością bossa ranią ×{{bossWeaknessBonus}}.
+- **Wytrzymałość** = {{bossHpShare}}% średniego tygodniowego EXP z ostatnich {{bossHistoryWeeks}} pełnych tygodni bez urlopu,
+  zaokrąglone do 10, w granicach {{bossMinHp}}–{{bossMaxHp}}. Gracz z mniej niż {{bossMinHistoryWeeks}} takimi tygodniami
+  (np. nowy) dostaje stałe {{bossNewPlayerHp}}. Liczona z poprzednich tygodni, więc nie zmienia się w trakcie bieżącego.
+- **Brak bossa** w tygodniu z urlopem (choćby jeden dzień; tarcza passy się nie liczy) i w tygodniu bez planu
+  (żadne zadanie nie jest zaplanowane na ten tydzień i nie ma nawyku „X razy w tygodniu”).
+- **Brak porażki:** niepokonany boss znika z końcem tygodnia. Boss nie wpływa na passę, serie ani EXP.
+- **Nagroda** jest wyłącznie kosmetyczna: relikt w bestiariuszu „Pokonani strażnicy” (zakładka Postępy) — zdobyte relikty
+  z datą i liczbą pokonań, niepokonani zakryci jako „???”.
+- Pokonanie bossa w trakcie sesji pokazuje krótką animację (ok. 1,2 s; bez ruchu przy `prefers-reduced-motion`).
+- Wszystko (postęp, pokonanie, bestiariusz) wynika z historii — bez osobnego licznika obrażeń i bez nowych pól w stanie gry.
+
+{{bosses}}
+
+## 11. Dobór nawyków (ankieta)
 
 Ankieta otwiera się automatycznie po pierwszym samouczku, jeśli plan jest pusty; można ją też uruchomić z pustego planu
 („Nie wiesz od czego zacząć?”) i z Ustawień („Dobierz nawyki”). Wszystko działa lokalnie — odpowiedzi nigdzie nie wychodzą.
@@ -172,7 +194,7 @@ Ankieta otwiera się automatycznie po pierwszym samouczku, jeśli plan jest pust
 
 {{catalog}}
 
-## 11. Podnoszenie poprzeczki
+## 12. Podnoszenie poprzeczki
 
 Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dziś) proponuje trudniejszą wersję tego samego nawyku
 (to samo zadanie — seria i historia zostają).
@@ -188,7 +210,7 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
 
 {{raiseBar}}
 
-## 12. Synchronizacja między urządzeniami
+## 13. Synchronizacja między urządzeniami
 
 - Pierwsze urządzenie tworzy **kod** (12 znaków, bez mylących 0/O i 1/I, np. `ABCD-EFGH-JKLM`); kolejne dołączają kodem,
   linkiem `?sync=KOD` albo kodem QR. Dołączenie zastępuje lokalne dane danymi z kodu. Kod działa jak hasło.
@@ -198,7 +220,7 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
   wygrywa strona, która coś zmieniła (gdy obie — to urządzenie); osiągnięcia z najwcześniejszą datą; EXP wynika ze scalonej historii.
 - Odłączenie zostawia dane lokalnie; „Usuń wszystkie dane” usuwa je także z serwera.
 
-## 13. Przypomnienia (Web Push)
+## 14. Przypomnienia (Web Push)
 
 - Wymagają kodu synchronizacji (serwer zna wtedy aktualny plan i odhaczenia). Na iPhonie działają po zainstalowaniu aplikacji
   na ekranie początkowym.
@@ -207,7 +229,7 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
 - Serwer sprawdza co 5 minut; okno wysyłki {{reminderWindow}} min, po godzinie startu najwyżej 10 min; każde przypomnienie
   wysyłane raz. W trybie urlopu — cisza. Powiadomienie testowe w panelu przypomnień.
 
-## 14. Ustawienia, dane i prywatność
+## 15. Ustawienia, dane i prywatność
 
 - **Ustawienia:** imię postaci, język, dźwięk, tryb urlopu, synchronizacja, aplikacja i przypomnienia, kopia zapasowa,
   dobór nawyków, poradnik, zgłoszenie problemu lub pomysłu, prywatność i regulamin, usunięcie wszystkich danych.
@@ -219,18 +241,19 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
   subskrypcje przypomnień (adres push, strefa czasowa, język, godziny) i zgłoszenia (do 12 miesięcy). Hosting: Netlify.
   Serwis nie jest dla osób poniżej 16 lat i nie udziela porad medycznych, dietetycznych ani treningowych.
 
-## 15. Pierwsze uruchomienie
+## 16. Pierwsze uruchomienie
 
 1. **Strona powitalna** (tylko przy pierwszej wizycie bez danych): „Rozpocznij wędrówkę” albo „Mam już kod” (synchronizacja).
 2. **Poradnik** (5 kroków z animowanymi podglądami): EXP i poziomy, dodawanie zadań, odhaczanie run, planowanie tygodnia, imię postaci.
    Można go pominąć i otworzyć później (stopka → Poradnik).
 3. **Ankieta doboru nawyków**, jeśli plan jest pusty.
 
-## 16. Rozwój
+## 17. Rozwój
 
 - `npm run dev` — serwer deweloperski z lokalnym API (dane w `.netlify/dev-*.json`; `/api/dev-reminders` ręcznie uruchamia przypomnienia).
 - `npm run build` — wersja produkcyjna; `npm run check:habits` — test katalogu nawyków, doboru z ankiety i łańcuchów poprzeczki
-  (wszystkie kombinacje odpowiedzi, oba języki); `npm run docs` — przebudowa tej dokumentacji.
+  (wszystkie kombinacje odpowiedzi, oba języki); `npm run check:bosses` — test strażnika tygodnia (granice wytrzymałości,
+  słabość, urlop i brak planu, ten sam boss w różnych strefach czasowych); `npm run docs` — przebudowa tej dokumentacji.
 - Hook `pre-commit` (`.githooks/`, włączany automatycznie przez `npm install`) przebudowuje dokumentację i dołącza ją do commita.
 - Teksty pisze się w miejscu użycia jako `t('po polsku', 'in English')`; zmiana języka przeładowuje stronę.
 - Commity po polsku; push na `main` = wdrożenie na produkcję.

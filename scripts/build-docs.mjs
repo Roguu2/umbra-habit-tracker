@@ -30,6 +30,7 @@ const progression = await lib('progression')
 const rewards = await lib('rewards')
 const shields = await lib('shields')
 const comeback = await lib('comeback')
+const bosses = await lib('bosses')
 const push = await import(new URL('netlify/push-handler.mjs', root))
 const pkg = JSON.parse(readFileSync(new URL('package.json', root), 'utf8'))
 
@@ -158,7 +159,13 @@ const reminderEvenings = push.EVENINGS.filter(Boolean).join(', ')
 
 // --- składanie --------------------------------------------------------------------------
 
-const SECTIONS = { categories, levels, achievements, classes, catalog, raiseBar, auras, quizBudget }
+// strażnicy w kolejności rotacji (tydzień po tygodniu)
+const bossTable = table(
+  ['#', 'Strażnik', 'Słabość', 'Relikt', 'Opis'],
+  bosses.BOSSES.map((b, i) => [i + 1, b.name, game.CATEGORIES[b.weakness].label, b.relic, b.desc]),
+)
+
+const SECTIONS = { categories, levels, achievements, classes, catalog, raiseBar, auras, quizBudget, bosses: bossTable }
 const VALUES = {
   version: pkg.version,
   habitCount: HABITS.length,
@@ -181,6 +188,13 @@ const VALUES = {
   minimumExample: [25, 30, 15].map((exp) => `${exp} → ${game.minimumExp(exp)} EXP`).join(', '),
   minLostStreak: comeback.MIN_LOST_STREAK,
   returnBonus: comeback.RETURN_BONUS,
+  bossWeaknessBonus: String(bosses.WEAKNESS_BONUS).replace('.', ','),
+  bossHpShare: Math.round(bosses.HP_SHARE * 100),
+  bossHistoryWeeks: bosses.HP_HISTORY_WEEKS,
+  bossMinHistoryWeeks: bosses.MIN_HISTORY_WEEKS,
+  bossNewPlayerHp: bosses.NEW_PLAYER_HP,
+  bossMinHp: bosses.MIN_HP,
+  bossMaxHp: bosses.MAX_HP,
   reminderLeads,
   reminderEvenings,
   reminderWindow: push.WINDOW_MIN,
