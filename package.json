@@ -9,6 +9,7 @@
     "build:artifact": "vite build && node scripts/build-artifact.mjs",
     "preview": "vite preview",
     "check:habits": "node scripts/check-habits.mjs",
+    "check:bosses": "node scripts/check-bosses.mjs",
     "docs": "node scripts/build-docs.mjs",
     "prepare": "node scripts/setup-hooks.mjs"
   },

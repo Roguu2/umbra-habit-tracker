@@ -14,6 +14,8 @@ Pełny opis aplikacji i wszystkich jej zasad: `DOKUMENTACJA.md` (generowana, nie
 - `npm run build` — wersja produkcyjna; uruchom przed commitem.
 - `npm run check:habits` — test katalogu nawyków, doboru z ankiety i łańcuchów poprzeczki; uruchom po zmianach
   w `src/lib/habits.js`, `recommend.js`, `progression.js` albo słowach kategorii w `game.js`.
+- `npm run check:bosses` — test strażnika tygodnia (wytrzymałość w granicach, słabość, urlop i brak planu,
+  ten sam boss w różnych strefach czasowych); uruchom po zmianach w `src/lib/bosses.js` albo w liczeniu EXP.
 - `npm run docs` — przebudowa dokumentacji bez commita.
 
 ## Zasady
