@@ -121,6 +121,9 @@ Wszystkie są na **ścieżce nagród** w zakładce Postępy (zdobyte, najbliższ
 
 - **Passa** — pełne dni z rzędu. Dni bez planu (nic nie zaplanowano i nic nie zrobiono) oraz dni przerwy jej nie przerywają.
   Dzisiejszy dzień dolicza się, gdy jest pełny; dopóki trwa, nie przerywa passy.
+- **Wypalone pieczęcie (łącznie)** — liczba wszystkich wykonań zadań w historii, widoczna w panelu Passy i w Postępach.
+  Liczona z historii (jak EXP), nigdy nie spada i nie zeruje się po utracie passy; dni przerwy i tarcze jej nie zwiększają.
+  Z niej liczą się też osiągnięcia za liczbę wykonanych zadań.
 - **Seria nawyku** — kolejne zaplanowane dni z wykonaniem (dni wolne od nawyku i przerwy nie przerywają; dodatkowe wykonanie
   w dzień wolny też się liczy). Dla nawyków „X razy w tygodniu” — kolejne tygodnie z osiągniętym celem (bieżący tydzień i tygodnie
   z przerwą nie przerywają serii).

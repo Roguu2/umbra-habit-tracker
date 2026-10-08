@@ -1,4 +1,4 @@
-import { dayKey, shiftKey } from './game'
+import { dayKey, sealsOf, shiftKey } from './game'
 import { existsOn, isFlexible, isPaused, isScheduledOn, pauseOn, weekCount, weekKeys } from './schedule.js'
 
 export { isFlexible, isPaused, isScheduledOn, weekCount }
@@ -149,11 +149,10 @@ function perfectOn(state, key) {
   return any
 }
 
-// jedno przejście po całej historii: pełne dni, najlepszy tydzień (pn–nd) i wypalone pieczęcie
+// jedno przejście po całej historii: pełne dni i najlepszy tydzień (pn–nd)
 export function lifetimeStats(state, today = dayKey()) {
   const startedAt = state.profile.startedAt
   let perfectDays = 0
-  let seals = 0
   let bestWeek = 0
   let week = 0
   const keys = keysBetween(weekKeys(startedAt)[0], today)
@@ -161,13 +160,11 @@ export function lifetimeStats(state, today = dayKey()) {
     if (i % 7 === 0) week = 0
     const perfect = perfectOn(state, k)
     if (perfect) bestWeek = Math.max(bestWeek, ++week)
-    if (k < startedAt) return
-    if (perfect) perfectDays++
-    seals += (state.history[k] ?? []).length
+    if (k >= startedAt && perfect) perfectDays++
   })
   return {
     perfectDays,
-    seals,
+    seals: sealsOf(state),
     bestWeek,
     bestStreak: Math.max(0, ...state.quests.map((q) => questStreaks(state, q, today).best)),
     created: state.quests.filter((q) => q.custom).length,

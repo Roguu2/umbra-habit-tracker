@@ -145,7 +145,7 @@ export default function TodayView({ game, onEdit, onOpenPlan, onOpenQuiz }) {
       </section>
 
       <aside className="space-y-8 lg:mt-12">
-        <Streak state={state} today={today} maxLevel={game.maxLevel} onShield={actions.spendShields} />
+        <Streak state={state} today={today} maxLevel={game.maxLevel} seals={game.life.seals} onShield={actions.spendShields} />
         <Tomorrow state={state} today={today} onOpenPlan={onOpenPlan} />
         <RaiseBar state={state} today={today} onRaise={actions.raiseBar} />
         <WeakSpotHint state={state} today={today} onAdd={actions.saveQuest} panel />
@@ -192,7 +192,7 @@ function ReorderableList({ items, onCommit, children }) {
   )
 }
 
-function Streak({ state, today, maxLevel, onShield }) {
+function Streak({ state, today, maxLevel, seals, onShield }) {
   const streak = perfectDayStreak(state, today)
   const shields = shieldsLeft(state, maxLevel)
   const offer = rescueOffer(state, today, maxLevel)
@@ -252,6 +252,11 @@ function Streak({ state, today, maxLevel, onShield }) {
             : t(`Nie przerywaj — każdy pełny dzień dokłada ogień do stosu.`, `Don't break it — every full day adds fire to the pyre.`)}
         </p>
       </div>
+      {/* licznik, który nigdy nie przepada — przeciwwaga dla passy, którą można stracić */}
+      <p className="mt-4 flex items-baseline justify-between gap-3 border-t border-white/[0.06] pt-3 text-[11px] tracking-[0.15em] text-white/45 uppercase">
+        {t('Wypalone pieczęcie (łącznie)', 'Seals burned (all time)')}
+        <span className="font-display text-base font-bold tracking-normal tabular-nums text-stone-100">{seals}</span>
+      </p>
     </Panel>
   )
 }

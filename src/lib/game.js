@@ -27,6 +27,15 @@ export function totalExpOf(state) {
   return total
 }
 
+// wypalone pieczęcie: wszystkie wykonania zadań w historii. Nigdy nie spada przy utracie passy,
+// a dni przerwy i tarcze niczego nie dodają, bo nie trafiają do historii.
+export function sealsOf(state) {
+  const known = new Set(state.quests.map((q) => q.id))
+  let seals = 0
+  for (const ids of Object.values(state.history)) for (const id of ids) if (known.has(id)) seals++
+  return seals
+}
+
 const TITLES = [
   [1, t('Nowicjusz Popiołu', 'Ash Novice')],
   [3, t('Strażnik Zmierzchu', 'Dusk Warden')],

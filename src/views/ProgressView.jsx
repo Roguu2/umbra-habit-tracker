@@ -23,7 +23,7 @@ export default function ProgressView({ game }) {
         <StatTile label={t('Skuteczność · 7 dni', 'Completion rate · 7 days')} value={pct(rate7)} hint={t('wykonane z zaplanowanych', 'done of planned')} delay={0.05} />
         <StatTile label={t('Passa', 'Streak')} value={streak} hint={t('pełne dni z rzędu', 'full days in a row')} delay={0.1} />
         <StatTile label={t('Pełne dni', 'Full days')} value={life.perfectDays} hint={t('łącznie', 'all time')} delay={0.15} />
-        <StatTile label={t('Wykonane zadania', 'Quests completed')} value={life.seals} hint={t('łącznie', 'all time')} delay={0.2} />
+        <StatTile label={t('Wypalone pieczęcie', 'Seals burned')} value={life.seals} hint={t('łącznie — nigdy nie przepadają', 'all time — never lost')} delay={0.2} />
       </div>
 
       <CharacterSheet state={state} today={today} onAdd={actions.saveQuest} />
