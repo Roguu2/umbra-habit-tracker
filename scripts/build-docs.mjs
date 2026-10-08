@@ -177,6 +177,8 @@ const VALUES = {
   shieldEvery: rewards.SHIELD_EVERY,
   shieldMaxDays: shields.MAX_RESCUE_DAYS,
   shieldMinStreak: shields.MIN_RESCUE_STREAK,
+  minimumMaxLength: game.MINIMUM_MAX_LENGTH,
+  minimumExample: [25, 30, 15].map((exp) => `${exp} → ${game.minimumExp(exp)} EXP`).join(', '),
   minLostStreak: comeback.MIN_LOST_STREAK,
   returnBonus: comeback.RETURN_BONUS,
   reminderLeads,

@@ -1,4 +1,4 @@
-import { dayKey, sealsOf, shiftKey } from './game'
+import { completionExp, dayKey, isMinimal, sealsOf, shiftKey } from './game'
 import { existsOn, isFlexible, isPaused, isScheduledOn, pauseOn, weekCount, weekKeys } from './schedule.js'
 
 export { isFlexible, isPaused, isScheduledOn, weekCount }
@@ -47,7 +47,8 @@ export function dayStats(state, key) {
     flexible: state.quests.filter((q) => isFlexible(q) && existsOn(q, key)).sort(byTime),
     flexDone: doneIds.filter((id) => isFlexible(byId[id])).map((id) => byId[id]),
     extra: doneIds.filter((id) => !scheduledIds.has(id) && !isFlexible(byId[id])).map((id) => byId[id]),
-    exp: doneIds.reduce((sum, id) => sum + byId[id].exp, 0),
+    exp: doneIds.reduce((sum, id) => sum + completionExp(state, byId[id], key), 0),
+    minimal: doneIds.filter((id) => isMinimal(state, id, key)), // zaliczone tylko w wersji minimalnej
     plannedExp: scheduled.reduce((sum, q) => sum + q.exp, 0),
     paused,
     shielded: Boolean(pause?.shield), // przerwa z tarczy passy, nie z urlopu

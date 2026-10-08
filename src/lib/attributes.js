@@ -1,7 +1,7 @@
 // --- Atrybuty postaci ---------------------------------------------------------
 // Każda kategoria zadań to atrybut z własnym poziomem, liczonym z EXP zdobytego w jej zadaniach.
 
-import { CATEGORIES, shiftKey } from './game'
+import { CATEGORIES, completionExp, shiftKey } from './game'
 import { isScheduledOn } from './schedule.js'
 import { t } from './i18n.js'
 
@@ -26,8 +26,8 @@ export const RECENT_DAYS = 14
 export function attributeStats(state, today) {
   const byId = Object.fromEntries(state.quests.map((q) => [q.id, q]))
   const exp = Object.fromEntries(ATTR_ORDER.map((k) => [k, 0]))
-  for (const ids of Object.values(state.history)) {
-    for (const id of ids) if (byId[id]) exp[byId[id].attr] += byId[id].exp
+  for (const [key, ids] of Object.entries(state.history)) {
+    for (const id of ids) if (byId[id]) exp[byId[id].attr] += completionExp(state, byId[id], key)
   }
 
   // ostatnie 14 zakończonych dni: ile zaplanowano i ile wykonano w każdej kategorii

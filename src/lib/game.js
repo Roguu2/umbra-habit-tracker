@@ -18,12 +18,21 @@ export function levelFromExp(totalExp) {
   return { level, current, needed: expForLevel(level) }
 }
 
+// Minimum dnia: zaliczenie wersji minimalnej zadania (state.minimums[dzień] = [id]) daje połowę EXP, w górę.
+// Opis wersji minimalnej (quest.minimum) to krótki tekst, np. „2 min”.
+export const MINIMUM_MAX_LENGTH = 32
+export const minimumExp = (exp) => Math.ceil(exp / 2)
+export const isMinimal = (state, questId, key) => (state.minimums?.[key] ?? []).includes(questId)
+export const completionExp = (state, quest, key) => (isMinimal(state, quest.id, key) ? minimumExp(quest.exp) : quest.exp)
+
 // EXP zawsze wynika z historii i obecnej wartości zadań — nie trzymamy osobnego licznika,
 // który mógłby się rozjechać (np. po zmianie nazwy zadania albo przy scalaniu synchronizacji)
 export function totalExpOf(state) {
-  const exp = Object.fromEntries(state.quests.map((q) => [q.id, q.exp]))
+  const byId = Object.fromEntries(state.quests.map((q) => [q.id, q]))
   let total = 0
-  for (const ids of Object.values(state.history)) for (const id of ids) total += exp[id] ?? 0
+  for (const [key, ids] of Object.entries(state.history)) {
+    for (const id of ids) if (byId[id]) total += completionExp(state, byId[id], key)
+  }
   return total
 }
 
@@ -244,6 +253,7 @@ export function createInitialState() {
     history: {},
     steps: {},
     counts: {}, // liczniki: counts[dzień][id zadania] = ile
+    minimums: {}, // minimum dnia: minimums[dzień] = [id zadań zaliczonych tylko w wersji minimalnej]
     pauses: [], // tryb urlopu: [{ from, to }], to = null — trwa
     achievements: {},
     comebackSeen: null, // dzień ostatniego ogłoszonego powrotu z cienia (lib/comeback.js) — komunikat tylko raz

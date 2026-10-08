@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion'
 import RuneSeal from './RuneSeal'
-import { CATEGORIES, TIERS } from '../lib/game'
+import { CATEGORIES, TIERS, minimumExp } from '../lib/game'
 import { sfx } from '../lib/sfx'
 import { plural, t } from '../lib/i18n'
 
 // reorder: { onDrop, onMove } — włącza przeciąganie (tylko dla zadań bez godziny)
 // index: pozycja na liście — opóźnia wejście karty (efekt kaskady)
 // count / onAddCount — licznik (np. szklanki wody); weekDone — postęp nawyku "X razy w tygodniu"
+// minimal / onMinimum — minimum dnia: zaliczona wersja minimalna i przełącznik jej zaliczenia
 export default function QuestCard({
   quest,
   done,
+  minimal = false,
+  onMinimum,
   checkedSteps = [],
   streak,
   streakUnit = 'day',
@@ -29,6 +32,8 @@ export default function QuestCard({
   const [open, setOpen] = useState(false)
   const c = TIERS[quest.tier]
   const hasSteps = quest.steps.length > 0
+  const exp = minimal ? minimumExp(quest.exp) : quest.exp
+  const canMinimum = quest.kind === 'check' && Boolean(quest.minimum) && Boolean(onMinimum)
 
   // efekt i dźwięk przy każdej zmianie stanu — także gdy zadanie zaliczy się samo po ostatnim kroku
   const prevDone = useRef(done)
@@ -148,7 +153,9 @@ export default function QuestCard({
           label={
             quest.kind === 'avoid'
               ? t(`${quest.name}: ${done ? 'cofnij' : 'wytrwałem dziś'}`, `${quest.name}: ${done ? 'undo' : 'I held out today'}`)
-              : t(`${quest.name}: oznacz jako ${done ? 'niewykonane' : 'wykonane'}`, `${quest.name}: mark as ${done ? 'not done' : 'done'}`)
+              : minimal
+                ? t(`${quest.name}: dokończ pełną wersję`, `${quest.name}: complete the full version`)
+                : t(`${quest.name}: oznacz jako ${done ? 'niewykonane' : 'wykonane'}`, `${quest.name}: mark as ${done ? 'not done' : 'done'}`)
           }
         />
 
@@ -184,7 +191,7 @@ export default function QuestCard({
               <span className="px-1.5 py-px text-[9px] font-bold tracking-[0.2em] text-white/60 ring-1 ring-white/20">⊘ {t('Unikaj', 'Avoid')}</span>
             )}
             <span>{CATEGORIES[quest.attr]?.label}</span>
-            <span style={{ color: c.bright }}>+{quest.exp} EXP</span>
+            <span style={{ color: c.bright }}>+{exp} EXP</span>
             {quest.perWeek && weekDone !== null && (
               <span className={weekDone >= quest.perWeek ? 'text-gold-bright' : 'text-white/55'}>
                 {Math.min(weekDone, quest.perWeek)}/{quest.perWeek} {t('w tym tyg.', 'this week')}
@@ -205,6 +212,33 @@ export default function QuestCard({
               </span>
             )}
           </div>
+          {canMinimum && (!done || minimal) && (
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]" onClick={(e) => e.stopPropagation()}>
+              {minimal ? (
+                <>
+                  <span className="text-gold/80">
+                    ◐ {t('Zaliczone minimum', 'Minimum done')}: <span className="text-white/60">{quest.minimum}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onMinimum(quest.id)}
+                    className="cursor-pointer tracking-[0.15em] text-white/35 uppercase hover:text-white/70"
+                  >
+                    {t('cofnij', 'undo')}
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onMinimum(quest.id)}
+                  aria-label={t(`${quest.name}: zalicz minimum (${quest.minimum})`, `${quest.name}: complete the minimum (${quest.minimum})`)}
+                  className="cursor-pointer border border-white/15 px-2 py-0.5 text-white/60 transition-colors hover:border-gold/60 hover:text-gold-bright"
+                >
+                  ◐ {t('Minimum', 'Minimum')}: {quest.minimum} · +{minimumExp(quest.exp)} EXP
+                </button>
+              )}
+            </div>
+          )}
           {quest.kind === 'count' && onAddCount && (
             <div className="mt-2 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
               <CountButton label={t('Odejmij', 'Decrease')} disabled={count <= 0} onClick={() => onAddCount(quest.id, -1)}>
@@ -305,7 +339,7 @@ export default function QuestCard({
             exit={{ opacity: 0 }}
             transition={{ duration: 1.4, ease: 'easeOut' }}
           >
-            +{quest.exp} EXP
+            +{exp} EXP
           </motion.span>
         )}
       </AnimatePresence>

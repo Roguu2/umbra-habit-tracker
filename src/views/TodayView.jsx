@@ -50,6 +50,8 @@ export default function TodayView({ game, onEdit, onOpenPlan, onOpenQuiz }) {
         key={q.id}
         quest={q}
         done={doneToday.includes(q.id)}
+        minimal={stats.minimal.includes(q.id)}
+        onMinimum={actions.toggleMinimum}
         checkedSteps={state.steps[today]?.[q.id]}
         streak={streak.current}
         streakUnit={streak.unit}

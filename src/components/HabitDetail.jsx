@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import Modal, { Button } from './Modal'
 import { MiniRune, pct } from './ui'
-import { CATEGORIES, DAY_SHORT, TIERS, WEEK_ORDER, dayKey, describeRepeat, formatDay, shiftKey, weekStart } from '../lib/game'
+import { CATEGORIES, DAY_SHORT, TIERS, WEEK_ORDER, completionExp, dayKey, describeRepeat, formatDay, shiftKey, weekStart } from '../lib/game'
 import { plural, t } from '../lib/i18n'
 import { isPaused, isScheduledOn, questStreaks, weekCount } from '../lib/stats'
 
@@ -24,7 +24,12 @@ function Body({ quest, state, today, onEdit }) {
   const stats = useMemo(() => {
     const done = (k) => (state.history[k] ?? []).includes(quest.id)
     let total = 0
-    for (const ids of Object.values(state.history)) if (ids.includes(quest.id)) total++
+    let exp = 0 // wersja minimalna daje połowę EXP, więc sumujemy każde wykonanie osobno
+    for (const [key, ids] of Object.entries(state.history)) {
+      if (!ids.includes(quest.id)) continue
+      total++
+      exp += completionExp(state, quest, key)
+    }
 
     // skuteczność z 30 zakończonych dni (dla nawyków tygodniowych: z ostatnich 4 pełnych tygodni)
     let rate = null
@@ -59,7 +64,7 @@ function Body({ quest, state, today, onEdit }) {
         }
       }),
     )
-    return { total, rate, grid }
+    return { total, exp, rate, grid }
   }, [quest, state, today])
 
   return (
@@ -80,7 +85,7 @@ function Body({ quest, state, today, onEdit }) {
         <Stat label={t('Seria', 'Streak')} value={`🔥 ${streaks.current}`} hint={weekUnit ? plural(streaks.current, ['tydzień', 'tygodnie', 'tygodni'], ['week', 'weeks']) : t('obecnie', 'current')} />
         <Stat label={t('Najlepsza', 'Best')} value={streaks.best} hint={weekUnit ? t('tygodni', 'weeks') : t('z rzędu', 'in a row')} />
         <Stat label={t('Skuteczność', 'Success')} value={pct(stats.rate)} hint={quest.perWeek ? t('4 tygodnie', '4 weeks') : t('30 dni', '30 days')} />
-        <Stat label={t('Wykonano', 'Done')} value={stats.total} hint={`${stats.total * quest.exp} EXP`} />
+        <Stat label={t('Wykonano', 'Done')} value={stats.total} hint={`${stats.exp} EXP`} />
       </div>
 
       <div>

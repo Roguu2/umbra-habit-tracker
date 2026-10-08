@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import DayPicker from './DayPicker'
 import { Segmented } from './ui'
-import { ALL_DAYS, CATEGORIES, WORK_DAYS, dayKey, detectCategory, formatDay } from '../lib/game'
+import { ALL_DAYS, CATEGORIES, MINIMUM_MAX_LENGTH, WORK_DAYS, dayKey, detectCategory, formatDay } from '../lib/game'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
 
@@ -37,6 +37,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
   const [target, setTarget] = useState(draft.target ?? 8)
   const [unit, setUnit] = useState(draft.unit ?? '')
   const [perWeek, setPerWeek] = useState(draft.perWeek ?? 3)
+  const [minimum, setMinimum] = useState(draft.minimum ?? '')
   const [confirmRemove, setConfirmRemove] = useState(false)
   const nameRef = useRef(null)
 
@@ -73,6 +74,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
       kind,
       target,
       unit,
+      minimum,
     })
     onClose()
   }
@@ -175,6 +177,27 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
                 </p>
               )}
             </div>
+          </Field>
+
+          <Field
+            hidden={kind !== 'check'}
+            label={t('Wersja minimalna', 'Minimum version')}
+            hint={t('opcjonalnie — na gorszy dzień', 'optional — for a rough day')}
+          >
+            <input
+              value={minimum}
+              onChange={(e) => setMinimum(e.target.value)}
+              maxLength={MINIMUM_MAX_LENGTH}
+              placeholder={t('np. 2 min albo 1 strona', 'e.g. 2 min or 1 page')}
+              aria-label={t('Wersja minimalna', 'Minimum version')}
+              className="w-full max-w-xs border-b border-white/15 bg-transparent py-1 text-sm text-stone-200 outline-none placeholder:text-white/25 focus:border-gold/60"
+            />
+            <p className="mt-1.5 text-[11px] text-white/40">
+              {t(
+                'Zaliczenie minimum utrzymuje passę i serię, daje połowę EXP. Pełną wersję możesz dokończyć tego samego dnia.',
+                'Completing the minimum keeps your streaks and gives half the EXP. You can still finish the full version the same day.',
+              )}
+            </p>
           </Field>
 
           <Field label={t('Godzina', 'Time')} hint={t('opcjonalnie', 'optional')}>

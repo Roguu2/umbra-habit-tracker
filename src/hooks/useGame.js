@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ALL_DAYS, autoProps, createInitialState, dayKey, levelFromExp, migrateState, shiftKey, totalExpOf } from '../lib/game'
+import { ALL_DAYS, MINIMUM_MAX_LENGTH, autoProps, createInitialState, dayKey, isMinimal, levelFromExp, migrateState, shiftKey, totalExpOf } from '../lib/game'
 import { isPaused, lifetimeStats } from '../lib/stats'
 import { ACHIEVEMENTS } from '../lib/achievements'
 import { RETURN_BONUS, returnDays } from '../lib/comeback'
@@ -31,14 +31,21 @@ function useToday() {
   return today
 }
 
-// ustawia wykonanie zadania w danym dniu (EXP wynika z historii — patrz totalExpOf)
-function setDone(s, quest, key, done) {
+// Ustawia wykonanie zadania w danym dniu (EXP wynika z historii — patrz totalExpOf).
+// minimal: zaliczona tylko wersja minimalna (znacznik w s.minimums, połowa EXP). Pełne zaliczenie zdejmuje
+// znacznik, a minimum nie obniża już pełnego wykonania — EXP nigdy się nie dubluje.
+function setDone(s, quest, key, done, minimal = false) {
   const list = s.history[key] ?? []
-  const was = list.includes(quest.id)
-  if (was === done) return s
+  const has = list.includes(quest.id)
+  const mins = s.minimums?.[key] ?? []
+  const wasMinimal = mins.includes(quest.id)
+  const nowMinimal = done && minimal && (!has || wasMinimal)
+  if (has === done && wasMinimal === nowMinimal) return s
   return {
     ...s,
-    history: { ...s.history, [key]: done ? [...list, quest.id] : list.filter((x) => x !== quest.id) },
+    history: has === done ? s.history : { ...s.history, [key]: done ? [...list, quest.id] : list.filter((x) => x !== quest.id) },
+    minimums:
+      wasMinimal === nowMinimal ? s.minimums : { ...s.minimums, [key]: nowMinimal ? [...mins, quest.id] : mins.filter((x) => x !== quest.id) },
   }
 }
 
@@ -85,7 +92,8 @@ export function useGame() {
       setState((s) => {
         const quest = s.quests.find((q) => q.id === id)
         if (!quest) return s
-        const done = !(s.history[key] ?? []).includes(id)
+        // przy zaliczonym minimum pieczęć dopełnia zadanie do pełnej wersji zamiast je cofać
+        const done = isMinimal(s, id, key) || !(s.history[key] ?? []).includes(id)
         let next = setDone(s, quest, key, done)
         if (quest.kind === 'count') next = setCount(next, id, key, done ? Math.max(quest.target, s.counts[key]?.[id] ?? 0) : 0)
         return quest.steps.length ? setSteps(next, id, key, done ? quest.steps.map((_, i) => i) : []) : next
@@ -115,7 +123,24 @@ export function useGame() {
         if (!quest) return s
         const checked = s.steps[key]?.[id] ?? []
         const indices = checked.includes(index) ? checked.filter((i) => i !== index) : [...checked, index]
-        return setDone(setSteps(s, id, key, indices), quest, key, indices.length === quest.steps.length)
+        const all = indices.length === quest.steps.length
+        const next = setSteps(s, id, key, indices)
+        // zaliczone minimum zostaje, dopóki nie odhaczysz wszystkich kroków (wtedy zadanie jest pełne)
+        return all || !isMinimal(s, id, key) ? setDone(next, quest, key, all) : next
+      })
+    },
+    [today],
+  )
+
+  // minimum dnia: zalicza wersję minimalną (połowa EXP) albo ją cofa; pełnego wykonania nie rusza
+  const toggleMinimum = useCallback(
+    (id, key = today) => {
+      setState((s) => {
+        const quest = s.quests.find((q) => q.id === id)
+        if (!quest?.minimum) return s
+        const minimal = isMinimal(s, id, key)
+        if (!minimal && (s.history[key] ?? []).includes(id)) return s
+        return setDone(s, quest, key, !minimal, true)
       })
     },
     [today],
@@ -123,8 +148,9 @@ export function useGame() {
 
   // dodanie lub edycja — kategoria, kolor i EXP wynikają z nazwy
   // kind: 'check' (zwykłe) | 'count' (licznik do celu) | 'avoid' (czego unikać); perWeek: X razy w tygodniu
+  // minimum: krótki opis wersji minimalnej (tylko zwykłe zadania)
   const saveQuest = useCallback(
-    ({ id, name, time, days, date, steps, kind = 'check', target, unit, perWeek }) => {
+    ({ id, name, time, days, date, steps, kind = 'check', target, unit, perWeek, minimum }) => {
       setState((s) => {
         const fields = {
           name,
@@ -136,6 +162,7 @@ export function useGame() {
           target: kind === 'count' ? Math.min(MAX_COUNT, Math.max(2, Number(target) || 2)) : null,
           unit: kind === 'count' ? (unit ?? '').trim().slice(0, 16) || null : null,
           perWeek: !date && perWeek ? Math.min(6, Math.max(1, Number(perWeek))) : null,
+          minimum: kind === 'check' ? (minimum ?? '').trim().slice(0, MINIMUM_MAX_LENGTH) || null : null,
           ...autoProps(name),
         }
         if (id) return { ...s, quests: s.quests.map((q) => (q.id === id ? { ...q, ...fields } : q)) }
@@ -324,6 +351,7 @@ export function useGame() {
       toggleQuest,
       toggleStep,
       addCount,
+      toggleMinimum,
       saveQuest,
       removeQuest,
       reorderQuests,

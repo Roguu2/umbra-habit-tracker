@@ -36,6 +36,18 @@ Umbra („Księga Nawyków”) to tracker nawyków w klimacie dark fantasy RPG. 
 - **Kroki** (opcjonalne, nie dla licznika) — lista podzadań, np. ćwiczeń; zadanie zalicza się po odhaczeniu wszystkich kroków,
   a odhaczenie całego zadania zaznacza wszystkie kroki.
 
+### Minimum dnia
+Zwykłe zadanie (nie licznik i nie „czego unikam”) może mieć opcjonalną **wersję minimalną** — krótki opis na gorszy dzień,
+np. „2 min” (pole „Wersja minimalna” w edytorze, do {{minimumMaxLength}} znaków). Na karcie zadania jest wtedy osobny przycisk
+„◐ Minimum”. Zaliczenie minimum to częściowe wykonanie:
+- liczy się do pełnego dnia, passy, serii nawyku i wypalonych pieczęci (zadanie trafia do historii jak wykonane),
+- daje 50% EXP zadania, zaokrąglone w górę (np. {{minimumExample}}) — także w atrybutach i statystykach dnia,
+- tego samego dnia można dokończyć pełną wersję (pieczęcią albo ostatnim krokiem) — EXP rośnie do 100%, bez dublowania;
+  minimum można też cofnąć.
+
+Technicznie: opis w `quest.minimum`, a zaliczenia minimum w `state.minimums[dzień] = [id zadań]` (scalane przy synchronizacji
+jak historia, zachowane w kopii zapasowej).
+
 ### Powtarzanie
 - **Jednorazowo** (konkretna data), **codziennie**, **pn–pt**, **wybrane dni tygodnia**.
 - **X razy w tygodniu** (1–6×) — w dowolne dni. Taki nawyk nie jest wymagany w żadnym konkretnym dniu, więc nie psuje pełnego dnia;
@@ -67,7 +79,8 @@ Zadanie z historią trafia do archiwum (statystyki zostają), nieużywane znika 
 
 ## 5. EXP i poziomy
 
-- EXP za zadanie zależy od kategorii (tabela wyżej). EXP potrzebny na poziom: {{levelBase}} + {{levelStep}} × (poziom − 1).
+- EXP za zadanie zależy od kategorii (tabela wyżej); zaliczenie samego minimum dnia daje połowę (w górę).
+  EXP potrzebny na poziom: {{levelBase}} + {{levelStep}} × (poziom − 1).
 - **Najwyższy osiągnięty poziom** (`maxLevel`) nigdy nie spada i to on odblokowuje nagrody.
 - Awans pokazuje okno z nowym tytułem, cytatem, wszystkimi nagrodami z przeskoczonych poziomów i zapowiedzią następnej.
   Pod paskiem EXP w HUD stale widać najbliższą nagrodę i brakujące EXP.

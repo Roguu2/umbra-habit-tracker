@@ -71,6 +71,12 @@ function mergeIds(b = [], l = [], r = []) {
   return [...new Set([...l, ...r])].filter((id) => (l.includes(id) !== b.includes(id) ? l.includes(id) : r.includes(id)))
 }
 
+// lista id dla jednego dnia (historia, minimum dnia); pusty dzień znika, chyba że lokalnie istnieje
+function mergeDayIds(b, l, r) {
+  const ids = mergeIds(b, l, r)
+  return ids.length || l ? ids : undefined
+}
+
 const byId = (quests = []) => Object.fromEntries(quests.map((q) => [q.id, q]))
 
 export function mergeStates(base, local, remote) {
@@ -89,10 +95,9 @@ export function mergeStates(base, local, remote) {
     onboarded: local.onboarded || remote.onboarded,
     profile: mergeMap(base.profile, local.profile, remote.profile),
     quests: order.filter((id) => id in quests).map((id) => quests[id]),
-    history: mergeMap(base.history, local.history, remote.history, (b, l, r) => {
-      const ids = mergeIds(b, l, r)
-      return ids.length || l ? ids : undefined
-    }),
+    history: mergeMap(base.history, local.history, remote.history, mergeDayIds),
+    // zaliczenia w wersji minimalnej — scalane jak historia (każde zadanie w każdym dniu osobno)
+    minimums: mergeMap(base.minimums, local.minimums, remote.minimums, mergeDayIds),
     steps: mergeMap(base.steps, local.steps, remote.steps, (b, l, r) => {
       const day = mergeMap(b, l, r)
       return Object.keys(day).length || l ? day : undefined
