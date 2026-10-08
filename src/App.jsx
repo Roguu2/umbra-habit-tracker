@@ -131,6 +131,7 @@ export default function App() {
           next={next}
           doneCount={todayStats.scheduledDone.length + bonusDone}
           questCount={todayStats.scheduled.length + bonusDone}
+          conquered={todayStats.perfect}
         />
 
         <NavTabs active={tab} onChange={setTab} />

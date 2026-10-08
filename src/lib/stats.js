@@ -52,8 +52,9 @@ export function dayStats(state, key) {
     plannedExp: scheduled.reduce((sum, q) => sum + q.exp, 0),
     paused,
     shielded: Boolean(pause?.shield), // przerwa z tarczy passy, nie z urlopu
-    // null = dzień się nie liczy (nic nie zaplanowano i nic nie zrobiono, albo urlop)
-    ratio: paused ? null : scheduled.length ? scheduledDone.length / scheduled.length : doneIds.length ? 1 : null,
+    // null = dzień neutralny: nic nie zaplanowano (nawet jeśli coś zrobiono ponad plan) albo przerwa —
+    // nie przerywa ani nie wydłuża passy i nie wchodzi do skuteczności
+    ratio: paused || !scheduled.length ? null : scheduledDone.length / scheduled.length,
     perfect: !paused && scheduled.length > 0 && scheduledDone.length === scheduled.length,
   }
 }
@@ -126,6 +127,8 @@ function weekStreaks(state, quest, today) {
   return { current, best, unit: 'week' }
 }
 
+// Passa: kolejne pełne dni. Dni neutralne (ratio null — bez planu, także z aktywnością ponad plan, albo przerwa)
+// pomijamy: nie przerywają jej i nie wydłużają.
 export function perfectDayStreak(state, today = dayKey()) {
   let streak = 0
   for (let k = shiftKey(today, -1); k >= state.profile.startedAt; k = shiftKey(k, -1)) {
@@ -138,7 +141,8 @@ export function perfectDayStreak(state, today = dayKey()) {
 }
 
 // Wynik dnia dla passy, bez budowania pełnych statystyk (dayStats) — liczony dla każdego dnia historii.
-// counted: dzień się liczy (jak ratio !== null w dayStats); perfect: pełny dzień; done: ile zadań wykonano.
+// counted: dzień się liczy, czyli coś było zaplanowane (jak ratio !== null w dayStats); perfect: pełny dzień;
+// done: ile zadań wykonano (także ponad plan — np. w dzień neutralny).
 export function dayOutcome(state, key) {
   const byId = questIndex(state)
   const doneIds = (state.history[key] ?? []).filter((id) => byId[id])
@@ -151,7 +155,7 @@ export function dayOutcome(state, key) {
     scheduled++
     if (!done.has(q.id)) missed++
   }
-  return { counted: scheduled > 0 || doneIds.length > 0, perfect: scheduled > 0 && missed === 0, done: doneIds.length }
+  return { counted: scheduled > 0, perfect: scheduled > 0 && missed === 0, done: doneIds.length }
 }
 
 const perfectOn = (state, key) => dayOutcome(state, key).perfect

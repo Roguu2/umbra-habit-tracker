@@ -72,6 +72,7 @@ Zadanie z historią trafia do archiwum (statystyki zostają), nieużywane znika 
 - **Licznik dnia (HUD):** zaplanowane na dziś + wszystko, co dziś zrobiono ponad plan (nawyki tygodniowe, zadania spoza planu);
   te drugie wchodzą do licznika dopiero po wykonaniu.
 - **Pełny dzień („Dzień zdobyty”):** wykonane wszystkie zadania zaplanowane na ten dzień (co najmniej jedno), dzień nie jest przerwą.
+  Same zadania ponad plan w dzień bez planu dają licznik np. 1/1, ale nie „Dzień zdobyty”.
 - **Plan:** tydzień w kafelkach (z nawigacją), panel wybranego dnia z szybkim dodawaniem, lista stałych nawyków.
   Nawyki tygodniowe są w każdym kafelku z postępem tygodnia (np. 1/2); po osiągnięciu celu przygasają w dniach bez wykonania.
 - **Jutro:** podgląd zaplanowanych zadań i skrót do planowania.
@@ -100,7 +101,10 @@ Wszystkie są na **ścieżce nagród** w zakładce Postępy (zdobyte, najbliższ
 
 ## 7. Passa, serie, urlop i tarcze
 
-- **Passa** — pełne dni z rzędu. Dni bez planu (nic nie zaplanowano i nic nie zrobiono) oraz dni przerwy jej nie przerywają.
+- **Passa** — pełne dni z rzędu. Dni bez planu oraz dni przerwy są **neutralne**: nie przerywają passy i jej nie wydłużają.
+  Dzień bez żadnego zaplanowanego zadania jest neutralny także wtedy, gdy zrobiono w nim coś dodatkowo (zadania spoza planu,
+  nawyki „X razy w tygodniu”) — EXP za te zadania liczy się normalnie, ale dzień nie jest „pełny” (nie wchodzi do pełnych dni,
+  osiągnięć za pełne dni ani skuteczności). W kalendarzu taki dzień ma własny, neutralny kolor z opisem aktywności ponad plan.
   Dzisiejszy dzień dolicza się, gdy jest pełny; dopóki trwa, nie przerywa passy.
 - **Wypalone pieczęcie (łącznie)** — liczba wszystkich wykonań zadań w historii, widoczna w panelu Passy i w Postępach.
   Liczona z historii (jak EXP), nigdy nie spada i nie zeruje się po utracie passy; dni przerwy i tarcze jej nie zwiększają.

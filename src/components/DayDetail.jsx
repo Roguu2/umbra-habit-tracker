@@ -44,10 +44,17 @@ export default function DayDetail({ state, today, dayKeyValue, actions }) {
         <p className="font-display text-lg font-bold text-stone-100 first-letter:uppercase">{formatDay(dayKeyValue)}</p>
         {!future && rows.length > 0 && (
           <p className="mt-2 text-[11px] tracking-[0.15em] text-white/45 uppercase">
-            <span className="text-stone-200 tabular-nums">
-              {s.scheduledDone.length}/{s.scheduled.length}
-            </span>{' '}
-            {t('wykonane', 'done')} · <span className="text-stone-200 tabular-nums">{s.exp}</span> EXP
+            {s.scheduled.length > 0 ? (
+              <>
+                <span className="text-stone-200 tabular-nums">
+                  {s.scheduledDone.length}/{s.scheduled.length}
+                </span>{' '}
+                {t('wykonane', 'done')}
+              </>
+            ) : (
+              t('dzień bez planu — nie wpływa na passę', "no plan — doesn't affect the streak")
+            )}{' '}
+            · <span className="text-stone-200 tabular-nums">{s.exp}</span> EXP
             {s.perfect && <span className="text-gold-bright">{t(' · pełny dzień', ' · full day')}</span>}
           </p>
         )}

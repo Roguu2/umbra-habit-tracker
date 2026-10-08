@@ -16,7 +16,8 @@ export function cellStyle(stats, { future, beforeStart }) {
       border: `1px dashed ${stats.scheduled.length ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.06)'}`,
     }
   if (stats.paused) return { background: 'transparent', border: '1px solid rgba(226,180,90,0.35)' }
-  if (stats.ratio === null) return { background: 'rgba(255,255,255,0.035)' }
+  // dzień neutralny: bez planu; aktywność ponad plan widać, ale nie jako wynik dnia
+  if (stats.ratio === null) return { background: stats.exp ? 'rgba(226,180,90,0.16)' : 'rgba(255,255,255,0.035)' }
   if (stats.perfect) return { background: '#e2b45a', boxShadow: '0 0 8px rgba(226,180,90,0.55)' }
   if (stats.ratio === 0) return { background: '#1d1416', border: '1px solid rgba(224,34,61,0.18)' }
   if (stats.ratio < 0.34) return { background: '#4a0b16' }
@@ -133,7 +134,10 @@ export default function Heatmap({ state, today, selected, onSelect }) {
 function describe({ stats, future }) {
   if (future) return stats.scheduled.length ? t(`zaplanowano ${stats.scheduled.length} (${stats.plannedExp} EXP)`, `${stats.scheduled.length} planned (${stats.plannedExp} EXP)`) : t('nic nie zaplanowano', 'nothing planned')
   if (stats.paused) return stats.shielded ? t('tarcza passy', 'streak shield') : t('urlop', 'vacation')
-  if (stats.ratio === null) return t('wolne', 'rest day')
+  if (stats.ratio === null) {
+    const extra = stats.extra.length + stats.flexDone.length
+    return extra ? t(`wolne · ponad plan: ${extra} · ${stats.exp} EXP`, `rest day · extra: ${extra} · ${stats.exp} EXP`) : t('wolne', 'rest day')
+  }
   const base = `${stats.scheduledDone.length}/${stats.scheduled.length} ${t('wykonane', 'done')} · ${stats.exp} EXP`
   return stats.perfect ? `${base} · ${t('pełny dzień', 'full day')}` : base
 }

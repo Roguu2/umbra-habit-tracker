@@ -53,7 +53,8 @@ function HeroName({ name, onRename }) {
 }
 
 // next: { reward, expLeft } — najbliższa nagroda za poziom (lib/rewards.js) albo null, gdy zdobyto wszystkie
-export default function CharacterHud({ name, onRename, level, maxLevel, title, current, needed, next, doneCount, questCount }) {
+// conquered: pełny dzień (wykonany cały plan) — sam licznik 1/1 z zadań ponad plan w wolny dzień go nie daje
+export default function CharacterHud({ name, onRename, level, maxLevel, title, current, needed, next, doneCount, questCount, conquered }) {
   const ratio = questCount ? doneCount / questCount : 0
 
   return (
@@ -102,7 +103,7 @@ export default function CharacterHud({ name, onRename, level, maxLevel, title, c
           </div>
         </div>
 
-        <DailyRing ratio={ratio} doneCount={doneCount} questCount={questCount} />
+        <DailyRing ratio={ratio} doneCount={doneCount} questCount={questCount} complete={conquered} />
       </div>
     </motion.header>
   )
@@ -149,8 +150,7 @@ function Sigil({ level, maxLevel }) {
   )
 }
 
-function DailyRing({ ratio, doneCount, questCount }) {
-  const complete = questCount > 0 && doneCount === questCount
+function DailyRing({ ratio, doneCount, questCount, complete }) {
   return (
     <div className="col-span-2 flex items-center gap-4 lg:col-span-1 lg:-mt-10 lg:flex-col lg:gap-2">
       <div className="relative size-20">
