@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Segmented } from './ui'
-import { ALL_DAYS, CATEGORIES, detectCategory, formatDay } from '../lib/game'
+import { ALL_DAYS, CATEGORIES, categoryOf, formatDay } from '../lib/game'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
 
@@ -21,7 +21,7 @@ export default function QuickAdd({ date, isToday, onAdd, onMore, id = 'quick', s
   const [time, setTime] = useState('')
   const [repeat, setRepeat] = useState('once')
 
-  const category = name.trim() ? CATEGORIES[detectCategory(name)] : null
+  const category = name.trim() ? CATEGORIES[categoryOf({ name })] : null
 
   const submit = (e) => {
     e.preventDefault()

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { MiniRune } from './ui'
-import { CATEGORIES, describeRepeat, detectCategory } from '../lib/game'
+import { CATEGORIES, categoryOf, describeRepeat } from '../lib/game'
 import { nextAlternative, recommend, toQuestDrafts } from '../lib/recommend'
 import { sfx } from '../lib/sfx'
 import { plural, t } from '../lib/i18n'
@@ -290,7 +290,7 @@ function Result({ result, setResult, answers }) {
         <AnimatePresence initial={false} mode="popLayout">
           {picks.map((x) => {
             const on = selected.has(x.id)
-            const cat = CATEGORIES[detectCategory(x.name)]
+            const cat = CATEGORIES[categoryOf(x)]
             const d = draftOf(x)
             return (
               <motion.li

@@ -111,7 +111,7 @@ const catalog = table(
   ['Nawyk', 'Kategoria', 'Cele w ankiecie', 'Pora', 'Min.', 'Poziom', 'Powtarzanie', 'Rodzaj', 'Pasuje do', 'Nie dla'],
   HABITS.map((h) => [
     h.name,
-    game.CATEGORIES[game.detectCategory(h.name)].label,
+    game.CATEGORIES[game.categoryOf(h)].label,
     h.goals.map((g) => GOALS[g]).join(', '),
     WHEN[h.when] + (h.time ? ` (${h.time})` : ''),
     h.min,
@@ -178,6 +178,7 @@ const SECTIONS = { categories, levels, achievements, classes, catalog, raiseBar,
 const VALUES = {
   version: pkg.version,
   habitCount: HABITS.length,
+  categoryCount: Object.keys(game.CATEGORIES).length,
   attrRecentDays: attributes.RECENT_DAYS,
   attrLevelBase: attributes.attrExpForLevel(1),
   attrLevelStep: attributes.attrExpForLevel(2) - attributes.attrExpForLevel(1),

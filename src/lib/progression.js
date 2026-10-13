@@ -3,7 +3,7 @@
 // albo większą liczbę w nazwie ("Spacer 20 min" → "Spacer 30 min"). Ten sam nawyk (to samo id),
 // więc seria i historia zostają. Po propozycji (przyjętej lub nie) ten nawyk milknie na 14 dni.
 
-import { detectCategory, parseKey, shiftKey } from './game.js'
+import { categoryOf, parseKey, shiftKey } from './game.js'
 
 export const QUIET_DAYS = 14
 
@@ -61,8 +61,8 @@ function harderName(name) {
 export function harderVersion(quest) {
   if (quest.date || quest.kind === 'avoid' || quest.kind === 'count' || quest.archivedAt) return null
   const name = harderName(quest.name)
-  // zmiana nazwy nie może przenieść nawyku do innego atrybutu
-  const nameOk = name && detectCategory(name) === detectCategory(quest.name)
+  // zmiana nazwy nie może przenieść nawyku do innego atrybutu (ręczna kategoria i tak zostaje)
+  const nameOk = name && categoryOf({ ...quest, name }) === categoryOf(quest)
 
   if (quest.perWeek && quest.perWeek < 3) return { perWeek: quest.perWeek + 1, kind: 'perWeek' }
   if (nameOk) return { name, kind: 'name' }

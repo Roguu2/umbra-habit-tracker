@@ -153,11 +153,24 @@ export function detectCategory(name) {
   return 'life'
 }
 
-// wszystko, czego użytkownik nie musi ustawiać — wynika z nazwy
-export function autoProps(name) {
-  const category = detectCategory(name)
-  const c = CATEGORIES[category]
-  return { attr: category, tier: c.tier, exp: c.exp, rune: c.rune }
+export const isCategory = (key) => typeof key === 'string' && Object.hasOwn(CATEGORIES, key)
+
+// Kategoria zadania — jedyne źródło: ręcznie wybrana (quest.category) albo, gdy null, wykryta z nazwy.
+// Działa też dla nawyków z katalogu i szkiców (bez pola category = z nazwy).
+export const categoryOf = (quest) => (isCategory(quest.category) ? quest.category : detectCategory(quest.name))
+
+// kategoria (atrybut), kolor runy i EXP zadania — z categoryOf; zapisywane w zadaniu przy każdej zmianie nazwy lub kategorii
+export function autoProps(name, category = null) {
+  const key = categoryOf({ name, category })
+  const c = CATEGORIES[key]
+  return { attr: key, tier: c.tier, exp: c.exp, rune: c.rune }
+}
+
+// Pole category w zadaniu: brak (starsze zapisy) → null. Starsza wersja aplikacji przy zmianie nazwy nadpisuje
+// attr/EXP wartościami z nazwy, a pole category zostawia — więc dla ręcznej kategorii wyliczamy je ponownie.
+export function withCategory(quest) {
+  if (isCategory(quest.category)) return { ...quest, ...autoProps(quest.name, quest.category) }
+  return quest.category === null ? quest : { ...quest, category: null }
 }
 
 export const TIERS = {
@@ -287,6 +300,7 @@ export function migrateState(raw) {
   }
   // dawny licznik EXP — teraz EXP liczy się z historii (totalExpOf)
   delete merged.totalExp
+  merged.quests = merged.quests.map(withCategory)
   return merged
 }
 

@@ -7,7 +7,7 @@
 //   level:  new | some                              (dopiero zaczynam / mam już nawyki)
 // }
 
-import { ALL_DAYS, WORK_DAYS, detectCategory } from './game.js'
+import { ALL_DAYS, WORK_DAYS, categoryOf } from './game.js'
 import { HABITS } from './habits.js'
 
 // ile minut dziennie naprawdę mieści się w odpowiedzi
@@ -85,7 +85,7 @@ export function nextAlternative(ranked, current, replaced, shown) {
 // od najłatwiejszych — kulejącemu atrybutowi pomoże raczej mały krok niż kolejne ambitne zadanie
 export function suggestForAttr(attr, existingNames = []) {
   const taken = new Set(existingNames.map((n) => n.trim().toLowerCase()))
-  return HABITS.filter((x) => detectCategory(x.name) === attr && !taken.has(x.name.toLowerCase()))
+  return HABITS.filter((x) => categoryOf(x) === attr && !taken.has(x.name.toLowerCase()))
     .sort((a, b) => a.lvl - b.lvl || Boolean(b.universal) - Boolean(a.universal) || dailyMinutes(a) - dailyMinutes(b))
 }
 

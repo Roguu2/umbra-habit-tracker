@@ -2,6 +2,8 @@
 // Urządzenia łączy wspólny kod. Każde pamięta ostatnio zsynchronizowany stan (base),
 // dzięki czemu zmiany zrobione równolegle na dwóch urządzeniach można scalić, a nie nadpisać.
 
+import { withCategory } from './game.js'
+
 const META_KEY = 'umbra-habit-tracker:sync'
 
 export const normalizeCode = (raw) => String(raw ?? '').toUpperCase().replace(/[^0-9A-Z]/g, '')
@@ -77,7 +79,9 @@ function mergeDayIds(b, l, r) {
   return ids.length || l ? ids : undefined
 }
 
-const byId = (quests = []) => Object.fromEntries(quests.map((q) => [q.id, q]))
+// withCategory: zapis sprzed pola category (np. base z poprzedniej wersji) porównujemy w tym samym kształcie,
+// inaczej każde zadanie wyglądałoby na zmienione lokalnie i zmiany z serwera by przepadały
+const byId = (quests = []) => Object.fromEntries(quests.map((q) => [q.id, withCategory(q)]))
 
 export function mergeStates(base, local, remote) {
   const quests = mergeMap(byId(base.quests), byId(local.quests), byId(remote.quests))

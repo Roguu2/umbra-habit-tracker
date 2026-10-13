@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ALL_DAYS, MINIMUM_MAX_LENGTH, autoProps, createInitialState, dayKey, isMinimal, levelFromExp, migrateState, shiftKey, totalExpOf } from '../lib/game'
+import { ALL_DAYS, MINIMUM_MAX_LENGTH, autoProps, createInitialState, dayKey, isCategory, isMinimal, levelFromExp, migrateState, shiftKey, totalExpOf } from '../lib/game'
 import { isPaused, lifetimeStats } from '../lib/stats'
 import { ACHIEVEMENTS } from '../lib/achievements'
 import { defeatedBosses } from '../lib/bosses'
@@ -161,13 +161,15 @@ export function useGame() {
     [today],
   )
 
-  // dodanie lub edycja — kategoria, kolor i EXP wynikają z nazwy
+  // dodanie lub edycja — kategoria, kolor i EXP wynikają z nazwy albo z ręcznie wybranej kategorii
   // kind: 'check' (zwykłe) | 'count' (licznik do celu) | 'avoid' (czego unikać); perWeek: X razy w tygodniu
   // minimum: krótki opis wersji minimalnej (tylko zwykłe zadania)
   // commission: dzień przyjęcia zlecenia dnia (lib/commission.js) — tylko przy dodawaniu, edycja go nie zmienia
   const saveQuest = useCallback(
-    ({ id, name, time, days, date, steps, stepOrigin, kind = 'check', target, unit, perWeek, minimum, commission }) => {
+    ({ id, name, time, days, date, steps, stepOrigin, category, kind = 'check', target, unit, perWeek, minimum, commission }) => {
       setState((s) => {
+        // category: ręczna kategoria albo null (z nazwy); bez podania przy edycji zostaje dotychczasowa
+        const manual = category === undefined ? (s.quests.find((q) => q.id === id)?.category ?? null) : isCategory(category) ? category : null
         const fields = {
           name,
           time: time || null,
@@ -179,7 +181,8 @@ export function useGame() {
           unit: kind === 'count' ? (unit ?? '').trim().slice(0, 16) || null : null,
           perWeek: !date && perWeek ? Math.min(6, Math.max(1, Number(perWeek))) : null,
           minimum: kind === 'check' ? (minimum ?? '').trim().slice(0, MINIMUM_MAX_LENGTH) || null : null,
-          ...autoProps(name),
+          category: manual,
+          ...autoProps(name, manual),
         }
         if (id) {
           const old = s.quests.find((q) => q.id === id)
@@ -225,7 +228,7 @@ export function useGame() {
           if (q.id !== id) return q
           const next = { ...q, barAt: today }
           if (up?.perWeek) next.perWeek = up.perWeek
-          if (up?.name) Object.assign(next, { name: up.name, ...autoProps(up.name) })
+          if (up?.name) Object.assign(next, { name: up.name, ...autoProps(up.name, q.category) })
           return next
         }),
       }))

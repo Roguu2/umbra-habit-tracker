@@ -69,9 +69,20 @@ jak historia, zachowane w kopii zapasowej).
 - Godzina jest opcjonalna. Zadania bez godziny lądują na końcu dnia w kolejności ułożonej przez użytkownika (przeciąganie lub strzałki).
 
 ### Kategoria, kolor i EXP — z nazwy
-Użytkownik niczego nie wybiera: kategoria (atrybut), kolor runy i EXP wynikają ze słów w nazwie. Pierwsza pasująca kategoria wygrywa
-(kolejność jak w tabeli); słowa polskie i angielskie działają w obu językach. Zmiana nazwy zmienia kategorię i EXP — także wstecz,
+Domyślnie użytkownik niczego nie wybiera: kategoria (atrybut), kolor runy i EXP wynikają ze słów w nazwie. Pierwsza pasująca kategoria
+wygrywa (kolejność jak w tabeli); słowa polskie i angielskie działają w obu językach. Zmiana nazwy zmienia kategorię i EXP — także wstecz,
 bo EXP liczy się z historii według obecnej wartości zadania.
+
+**Ręczna zmiana kategorii.** W edytorze pod nazwą widać wykrytą kategorię i przycisk „Zmień”: do wyboru {{categoryCount}}
+kategorii albo „Auto (z nazwy)”, przy każdej opcji jej EXP. Ręcznie wybrana kategoria zostaje przy zmianie nazwy (także przy
+podniesieniu poprzeczki); „Auto” wraca do wykrywania z nazwy. Zmiana kategorii, tak jak zmiana nazwy, zmienia EXP całej historii
+zadania — edytor pokazuje to ostrzeżeniem. Szybkie dodawanie zawsze używa kategorii z nazwy.
+
+Technicznie: pole `quest.category` (klucz kategorii albo `null` = z nazwy). Jedyne źródło kategorii to `categoryOf(zadanie)`
+w `lib/game.js`; z niej `autoProps` wylicza zapisywane w zadaniu `attr`, kolor i EXP, a z `attr` korzystają EXP, atrybuty i klasa,
+słaby punkt, strażnik tygodnia, przepowiednia i statystyki. Starsze zapisy, kopie zapasowe i stan z serwera dostają `category: null`
+przy wczytaniu (`migrateState`); gdy starsza wersja aplikacji zmieni nazwę zadania z ręczną kategorią, `attr` i EXP są wyliczane
+ponownie z pola `category`. Scalanie porównuje zadania w tym samym kształcie, więc wspólny przodek sprzed pola nie gubi zmian.
 
 {{categories}}
 
@@ -266,7 +277,7 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
   {{quietDays}} dni. Pokazywany jest jeden kandydat — z najdłuższą serią.
 - **Co:** nawyki tygodniowe poniżej 3× — częściej o 1; potem liczba w nazwie rośnie według jednostki (minuty, strony, kroki,
   serie, powtórzenia, kilometry, słówka); bez liczby w nazwie — częściej, najwyżej do 4× w tygodniu.
-  Zmiana nazwy nie może przenieść nawyku do innej kategorii.
+  Zmiana nazwy nie może przenieść nawyku do innej kategorii (przy ręcznie wybranej kategorii ta po prostu zostaje).
 - **Bez propozycji:** „czego unikam”, liczniki, zadania jednorazowe i nawyki bez sensownej trudniejszej wersji.
 - Po „Podnieś poprzeczkę” albo „Jeszcze nie” nawyk milknie na {{quietDays}} dni (zapis w zadaniu, synchronizuje się).
 
@@ -314,7 +325,8 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
 
 - `npm run dev` — serwer deweloperski z lokalnym API (dane w `.netlify/dev-*.json`; `/api/dev-reminders` ręcznie uruchamia przypomnienia).
 - `npm run build` — wersja produkcyjna; `npm run check:habits` — test katalogu nawyków, doboru z ankiety i łańcuchów poprzeczki
-  (wszystkie kombinacje odpowiedzi, oba języki) oraz przenoszenia postępu przy edycji kroków; `npm run check:bosses` — test strażnika tygodnia (granice wytrzymałości,
+  (wszystkie kombinacje odpowiedzi, oba języki), przenoszenia postępu przy edycji kroków i ręcznej kategorii
+  (zmiana nazwy, stare zapisy i kopie bez pola, scalanie); `npm run check:bosses` — test strażnika tygodnia (granice wytrzymałości,
   słabość, urlop i brak planu, ten sam boss w różnych strefach czasowych); `npm run check:luck` — test elementów losowych
   (szansa i rzadkość reliktów, przepowiednia bez zmian EXP wstecz, zlecenie dnia, obrażenia bossa = EXP, te same wyniki w różnych strefach
   czasowych); `npm run docs` — przebudowa tej dokumentacji.

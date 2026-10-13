@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import DayPicker from './DayPicker'
 import StepsEditor, { toEditorSteps } from './StepsEditor'
+import CategoryPicker from './CategoryPicker'
 import { Segmented } from './ui'
-import { ALL_DAYS, CATEGORIES, MINIMUM_MAX_LENGTH, WORK_DAYS, dayKey, detectCategory, formatDay } from '../lib/game'
+import { ALL_DAYS, MINIMUM_MAX_LENGTH, WORK_DAYS, dayKey, formatDay } from '../lib/game'
 import { useEscape } from '../hooks/useEscape'
 import { stepsFromText } from '../lib/steps'
 import { sfx } from '../lib/sfx'
@@ -31,6 +32,7 @@ export default function QuestEditor({ draft, onSave, onRemove, onClose }) {
 function EditorBody({ draft, onSave, onRemove, onClose }) {
   const editing = Boolean(draft.id)
   const [name, setName] = useState(draft.name ?? '')
+  const [category, setCategory] = useState(draft.category ?? null)
   const [time, setTime] = useState(draft.time ?? '')
   const [repeat, setRepeat] = useState(repeatOf(draft))
   const [days, setDays] = useState(draft.days?.length ? draft.days : [1, 3, 5])
@@ -54,7 +56,6 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
     return () => clearTimeout(id)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const category = name.trim() ? CATEGORIES[detectCategory(name)] : null
   const valid = name.trim() && (repeat !== 'custom' || days.length > 0) && (kind !== 'count' || Number(target) >= 2)
 
   const submit = (e) => {
@@ -66,6 +67,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
     onSave({
       id: draft.id,
       name: name.trim(),
+      category,
       time,
       steps: allSteps.map((s) => s.text),
       stepOrigin: allSteps.map((s) => s.from),
@@ -123,15 +125,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
               aria-label={t('Nazwa', 'Name')}
               className="w-full border-b border-white/15 bg-transparent pb-2 font-display text-xl text-stone-100 outline-none transition-colors placeholder:text-white/25 focus:border-blood-bright"
             />
-            <div className="mt-2 h-4 text-[11px] tracking-[0.15em] text-white/40 uppercase">
-              <AnimatePresence mode="wait">
-                {category && (
-                  <motion.span key={category.label} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="inline-block">
-                    {category.label} · <span className="text-gold-bright">+{category.exp} EXP</span>
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </div>
+            <CategoryPicker name={name} value={category} onChange={setCategory} original={editing ? draft : null} />
           </div>
 
           <Field label={t('Rodzaj', 'Type')}>
