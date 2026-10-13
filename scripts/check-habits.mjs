@@ -2,6 +2,7 @@
 // 1. każdy nawyk trafia w kategorię zgodną z którymś ze swoich celów (w obu językach)
 // 2. dla każdej kombinacji odpowiedzi: pełna liczba propozycji, każdy cel pokryty,
 //    mieści się w czasie, bez dwóch nawyków z jednej grupy
+// 3. poprzeczka zostaje w tej samej kategorii; 4. edycja kroków przenosi postęp (lib/steps.js)
 // Język wybiera i18n.js przy imporcie, więc każdy język sprawdzamy w osobnym procesie.
 
 import { execFileSync } from 'node:child_process'
@@ -75,6 +76,23 @@ for (const d of toQuestDrafts(HABITS, { level: 'some' })) {
     q = next
   }
 }
+
+// 4. edycja kroków: postęp idzie za krokami (zmiana tekstu, kolejności, usunięcie, dopisanie)
+const { remapStepProgress, sameOrigin, stepsFromText } = await import('../src/lib/steps.js')
+const remap = (checked, origin, done = false) => remapStepProgress({ d: { q: checked } }, 'q', origin, () => done).d.q.join()
+const stepCases = [
+  ['zmiana tekstu', remap([0, 2], [0, 1, 2]), '0,2'],
+  ['zmiana kolejności', remap([0], [2, 0, 1]), '1'],
+  ['usunięcie kroku', remap([2], [0, 2]), '1'],
+  ['usunięcie odhaczonego', remap([1], [0, 2]), ''],
+  ['dopisany krok nieodhaczony', remap([0, 1], [0, 1, null]), '0,1'],
+  ['zaliczone zadanie — wszystkie', remap([0, 1], [0, 1, null], true), '0,1,2'],
+  ['bez origin', sameOrigin(3, 2).join(), '0,1'],
+  ['wklejanie linii', stepsFromText('Przysiad\r\n\n  Wykroki  \n').join('|'), 'Przysiad|Wykroki'],
+]
+for (const [what, got, want] of stepCases) if (got !== want) errors.push(`kroki — ${what}: ${got} ≠ ${want}`)
+const untouched = remapStepProgress({ d: { other: [0] } }, 'q', [], () => false)
+if (untouched.d.other.join() !== '0') errors.push('kroki — postęp innego zadania się zmienił')
 
 if (errors.length) {
   console.log(`[${lang}] ${errors.length} problemów:\n  ${errors.slice(0, 30).join('\n  ')}`)

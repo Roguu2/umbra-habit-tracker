@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import DayPicker from './DayPicker'
+import StepsEditor, { toEditorSteps } from './StepsEditor'
 import { Segmented } from './ui'
 import { ALL_DAYS, CATEGORIES, MINIMUM_MAX_LENGTH, WORK_DAYS, dayKey, detectCategory, formatDay } from '../lib/game'
 import { useEscape } from '../hooks/useEscape'
+import { stepsFromText } from '../lib/steps'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
 
@@ -17,6 +19,7 @@ function repeatOf(q) {
 }
 
 // Jedno okno do dodawania i edycji. draft: { id?, name, time, days, date, steps }
+// Kroki edytuje StepsEditor; przy zapisie oddajemy też stepOrigin, żeby postęp kroków poszedł za krokami
 export default function QuestEditor({ draft, onSave, onRemove, onClose }) {
   return (
     <AnimatePresence>
@@ -32,7 +35,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
   const [repeat, setRepeat] = useState(repeatOf(draft))
   const [days, setDays] = useState(draft.days?.length ? draft.days : [1, 3, 5])
   const [date, setDate] = useState(draft.date ?? dayKey())
-  const [steps, setSteps] = useState(draft.steps ?? [])
+  const [steps, setSteps] = useState(() => toEditorSteps(draft.steps))
   const [stepDraft, setStepDraft] = useState('')
   const [kind, setKind] = useState(draft.kind ?? 'check')
   const [target, setTarget] = useState(draft.target ?? 8)
@@ -54,23 +57,18 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
   const category = name.trim() ? CATEGORIES[detectCategory(name)] : null
   const valid = name.trim() && (repeat !== 'custom' || days.length > 0) && (kind !== 'count' || Number(target) >= 2)
 
-  const addStep = () => {
-    if (!stepDraft.trim()) return
-    sfx.tick()
-    setSteps((s) => [...s, stepDraft.trim()])
-    setStepDraft('')
-  }
-
   const submit = (e) => {
     e?.preventDefault()
     if (!valid) return
-    const allSteps = kind === 'count' ? [] : stepDraft.trim() ? [...steps, stepDraft.trim()] : steps
+    // niedodany tekst z pola „Nowy krok” też trafia do zadania
+    const allSteps = kind === 'count' ? [] : [...steps, ...stepsFromText(stepDraft).map((text) => ({ text, from: null }))]
     sfx.forge()
     onSave({
       id: draft.id,
       name: name.trim(),
       time,
-      steps: allSteps,
+      steps: allSteps.map((s) => s.text),
+      stepOrigin: allSteps.map((s) => s.from),
       date: repeat === 'once' ? date : null,
       days: { daily: ALL_DAYS, workdays: WORK_DAYS, custom: days, once: [], weekly: ALL_DAYS }[repeat],
       perWeek: repeat === 'weekly' ? perWeek : null,
@@ -266,52 +264,7 @@ function EditorBody({ draft, onSave, onRemove, onClose }) {
           </Field>
 
           <Field hidden={kind === 'count'} label={t('Kroki', 'Steps')} hint={t('opcjonalnie — np. ćwiczenia w treningu', 'optional — e.g. exercises in a workout')}>
-            {steps.length > 0 && (
-              <ol className="mb-2 space-y-1">
-                <AnimatePresence initial={false}>
-                  {steps.map((s, i) => (
-                    <motion.li
-                      key={`${s}-${i}`}
-                      layout
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 8 }}
-                      className="group flex items-center gap-3 text-sm text-stone-200"
-                    >
-                      <span className="w-4 text-right text-[11px] tabular-nums text-white/30">{i + 1}.</span>
-                      <span className="flex-1">{s}</span>
-                      <button
-                        type="button"
-                        onClick={() => setSteps((all) => all.filter((_, j) => j !== i))}
-                        aria-label={t(`Usuń krok ${s}`, `Remove step ${s}`)}
-                        className="cursor-pointer px-1 text-xs text-white/25 hover:text-blood-bright"
-                      >
-                        ✕
-                      </button>
-                    </motion.li>
-                  ))}
-                </AnimatePresence>
-              </ol>
-            )}
-            <div className="flex gap-2">
-              <input
-                value={stepDraft}
-                onChange={(e) => setStepDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    addStep()
-                  }
-                }}
-                placeholder={t('np. Przysiad 4×8', 'e.g. Squat 4×8')}
-                maxLength={60}
-                aria-label={t('Nowy krok', 'New step')}
-                className="min-w-0 flex-1 border-b border-white/10 bg-transparent py-1 text-sm text-stone-200 outline-none placeholder:text-white/25 focus:border-gold/60"
-              />
-              <button type="button" onClick={addStep} className="cursor-pointer px-2 text-[11px] tracking-widest text-gold/80 uppercase hover:text-gold-bright">
-                {t('+ dodaj', '+ add')}
-              </button>
-            </div>
+            <StepsEditor steps={steps} onChange={setSteps} draft={stepDraft} onDraftChange={setStepDraft} />
           </Field>
 
           <footer className="flex items-center justify-between gap-3 pt-2">

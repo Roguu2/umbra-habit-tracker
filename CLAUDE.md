@@ -12,8 +12,8 @@ Pełny opis aplikacji i wszystkich jej zasad: `DOKUMENTACJA.md` (generowana, nie
 ## Polecenia
 - `npm run dev` — serwer deweloperski z lokalnym API (`/api/sync`, `/api/push`).
 - `npm run build` — wersja produkcyjna; uruchom przed commitem.
-- `npm run check:habits` — test katalogu nawyków, doboru z ankiety i łańcuchów poprzeczki; uruchom po zmianach
-  w `src/lib/habits.js`, `recommend.js`, `progression.js` albo słowach kategorii w `game.js`.
+- `npm run check:habits` — test katalogu nawyków, doboru z ankiety, łańcuchów poprzeczki i edycji kroków; uruchom po zmianach
+  w `src/lib/habits.js`, `recommend.js`, `progression.js`, `steps.js` albo słowach kategorii w `game.js`.
 - `npm run check:bosses` — test strażnika tygodnia (wytrzymałość w granicach, słabość, urlop i brak planu,
   ten sam boss w różnych strefach czasowych); uruchom po zmianach w `src/lib/bosses.js` albo w liczeniu EXP.
 - `npm run check:luck` — test elementów losowych (relikty, przepowiednia, zlecenie dnia, spójność obrażeń bossa z EXP, te same wyniki

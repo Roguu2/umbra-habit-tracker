@@ -6,6 +6,7 @@ import { defeatedBosses } from '../lib/bosses'
 import { RETURN_BONUS, returnDays } from '../lib/comeback'
 import { RARITY, relicCollection, relicsOn } from '../lib/relics'
 import { shieldPauses, shieldsUsed } from '../lib/shields'
+import { remapStepProgress, sameOrigin } from '../lib/steps'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
 import { useSync } from './useSync'
@@ -53,6 +54,18 @@ function setDone(s, quest, key, done, minimal = false) {
 
 function setSteps(s, questId, key, indices) {
   return { ...s, steps: { ...s.steps, [key]: { ...s.steps[key], [questId]: indices } } }
+}
+
+// po edycji kroków (lib/steps.js): postęp idzie za krokami, a dzisiejsze zadanie zostaje spójne —
+// zaliczone ma odhaczone wszystkie kroki, a gdy usunięto jedyne nieodhaczone, zalicza się jak po odhaczeniu
+function withStepsKept(s, old, quest, origin, today) {
+  const fullyDone = (key) => (s.history[key] ?? []).includes(quest.id) && !isMinimal(s, quest.id, key)
+  const next = { ...s, steps: remapStepProgress(s.steps, quest.id, origin, fullyDone) }
+  if (!quest.steps.length) return next
+  if (fullyDone(today)) return setSteps(next, quest.id, today, quest.steps.map((_, i) => i))
+  const checked = next.steps[today]?.[quest.id] ?? []
+  const all = checked.length === quest.steps.length
+  return all && old.steps.length !== quest.steps.length ? setDone(next, quest, today, true) : next
 }
 
 function setCount(s, questId, key, n) {
@@ -153,7 +166,7 @@ export function useGame() {
   // minimum: krótki opis wersji minimalnej (tylko zwykłe zadania)
   // commission: dzień przyjęcia zlecenia dnia (lib/commission.js) — tylko przy dodawaniu, edycja go nie zmienia
   const saveQuest = useCallback(
-    ({ id, name, time, days, date, steps, kind = 'check', target, unit, perWeek, minimum, commission }) => {
+    ({ id, name, time, days, date, steps, stepOrigin, kind = 'check', target, unit, perWeek, minimum, commission }) => {
       setState((s) => {
         const fields = {
           name,
@@ -168,7 +181,12 @@ export function useGame() {
           minimum: kind === 'check' ? (minimum ?? '').trim().slice(0, MINIMUM_MAX_LENGTH) || null : null,
           ...autoProps(name),
         }
-        if (id) return { ...s, quests: s.quests.map((q) => (q.id === id ? { ...q, ...fields } : q)) }
+        if (id) {
+          const old = s.quests.find((q) => q.id === id)
+          if (!old) return s
+          const next = { ...s, quests: s.quests.map((q) => (q.id === id ? { ...q, ...fields } : q)) }
+          return withStepsKept(next, old, { ...old, ...fields }, stepOrigin ?? sameOrigin(old.steps.length, steps.length), today)
+        }
         const quest = {
           id: `q-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`,
           ...fields,

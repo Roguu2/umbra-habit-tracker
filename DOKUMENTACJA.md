@@ -36,6 +36,20 @@ Umbra („Księga Nawyków”) to tracker nawyków w klimacie dark fantasy RPG. 
 - **Kroki** (opcjonalne, nie dla licznika) — lista podzadań, np. ćwiczeń; zadanie zalicza się po odhaczeniu wszystkich kroków,
   a odhaczenie całego zadania zaznacza wszystkie kroki.
 
+### Edycja kroków
+- Kliknięcie tekstu kroku w edytorze zamienia go w pole: Enter lub wyjście z pola zapisuje, Esc anuluje (bez zamykania okna).
+  Pusty tekst usuwa krok; usunięcie (także ✕) można cofnąć przez kilka sekund.
+- Kolejność: strzałki ▲▼ przy kroku, przeciąganie za uchwyt ⠿ albo klawisze ↑/↓ na uchwycie.
+- Wklejenie kilku linii do pola „Nowy krok” dodaje każdą linię jako osobny krok (do 60 znaków).
+- Postęp kroków idzie za krokami: poprawka tekstu ani zmiana kolejności niczego nie odhacza ani nie odznacza.
+  Zadanie zaliczone w pełni ma po edycji odhaczone wszystkie kroki (także dopisane). Gdy usunięty krok był jedynym
+  nieodhaczonym, zadanie zalicza się jak po odhaczeniu ostatniego kroku.
+
+Technicznie: postęp to indeksy kroków w `state.steps[dzień][id zadania]` — ten sam kształt co w starszych wersjach,
+więc synchronizacja z nimi działa. Edytor przy zapisie podaje, skąd pochodzi każdy krok (`stepOrigin`), a `lib/steps.js`
+przenosi postęp na nowe indeksy. Ograniczenie: gdy jedno urządzenie zmieni kolejność kroków, a drugie, zanim się zsynchronizuje,
+odhaczy kroki tego samego dnia, odhaczenia z drugiego mogą trafić w inne kroki.
+
 ### Minimum dnia
 Zwykłe zadanie (nie licznik i nie „czego unikam”) może mieć opcjonalną **wersję minimalną** — krótki opis na gorszy dzień,
 np. „2 min” (pole „Wersja minimalna” w edytorze, do 32 znaków). Na karcie zadania jest wtedy osobny przycisk
@@ -485,7 +499,7 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
 
 - `npm run dev` — serwer deweloperski z lokalnym API (dane w `.netlify/dev-*.json`; `/api/dev-reminders` ręcznie uruchamia przypomnienia).
 - `npm run build` — wersja produkcyjna; `npm run check:habits` — test katalogu nawyków, doboru z ankiety i łańcuchów poprzeczki
-  (wszystkie kombinacje odpowiedzi, oba języki); `npm run check:bosses` — test strażnika tygodnia (granice wytrzymałości,
+  (wszystkie kombinacje odpowiedzi, oba języki) oraz przenoszenia postępu przy edycji kroków; `npm run check:bosses` — test strażnika tygodnia (granice wytrzymałości,
   słabość, urlop i brak planu, ten sam boss w różnych strefach czasowych); `npm run check:luck` — test elementów losowych
   (szansa i rzadkość reliktów, przepowiednia bez zmian EXP wstecz, zlecenie dnia, obrażenia bossa = EXP, te same wyniki w różnych strefach
   czasowych); `npm run docs` — przebudowa tej dokumentacji.
