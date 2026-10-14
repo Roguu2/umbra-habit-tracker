@@ -3,7 +3,8 @@
 import { lang } from './i18n.js'
 
 const PREFS_KEY = 'umbra-habit-tracker:push'
-export const DEFAULT_PREFS = { enabled: false, lead: 15, evening: '20:00' }
+// lastCall: „ostatnia szansa” przed północą, gdy zostały zadania ('off' = wyłączona)
+export const DEFAULT_PREFS = { enabled: false, lead: 15, evening: '20:00', lastCall: '23:00' }
 
 export const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 export const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true
@@ -89,6 +90,7 @@ export const pushApi = {
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       lead: prefs.lead,
       evening: prefs.evening,
+      lastCall: prefs.lastCall,
       lang: lang(),
     }),
   remove: (endpoint) => call('DELETE', '', { endpoint }),

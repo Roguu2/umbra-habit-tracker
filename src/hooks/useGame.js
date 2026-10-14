@@ -10,6 +10,7 @@ import { remapStepProgress, sameOrigin } from '../lib/steps'
 import { sfx } from '../lib/sfx'
 import { t } from '../lib/i18n'
 import { useSync } from './useSync'
+import { useAppBadge } from './useAppBadge'
 
 const STORAGE_KEY = 'umbra-habit-tracker:v1'
 
@@ -78,6 +79,7 @@ export function useGame() {
   const [state, setState] = useState(load)
   const today = useToday()
   const sync = useSync(state, setState)
+  useAppBadge(state, today)
 
   useEffect(() => {
     try {

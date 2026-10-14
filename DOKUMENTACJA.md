@@ -483,9 +483,22 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
 - Wymagają kodu synchronizacji (serwer zna wtedy aktualny plan i odhaczenia). Na iPhonie działają po zainstalowaniu aplikacji
   na ekranie początkowym.
 - **Przed zadaniem z godziną:** o czasie, 5 min przed, 15 min przed, 30 min przed. Nawyki „X razy w tygodniu” z godziną — dopóki cel tygodnia nie jest osiągnięty.
-- **Wieczorne podsumowanie** (opcjonalne, 19:00, 20:00, 21:00, 22:00): ile zadań zostało na dziś i które — „nie przerywaj passy”.
+- **Wieczorne podsumowanie** (opcjonalne, 19:00, 20:00, 21:00, 22:00): ile zadań zostało na dziś i które — łagodnie, bez straszenia passą.
+- **Ostatnia szansa** (wył., 22:00, 23:00, 23:30; domyślnie 23:00, także dla subskrypcji sprzed tej opcji): tylko gdy zostały
+  nieodhaczone zadania zaplanowane na dziś. Tytuł „Passa w niebezpieczeństwie”, w treści liczba zadań, czas do północy
+  i — jeśli któreś zadanie ma minimum dnia — co wystarczy zrobić. Długości passy nie ma: liczy ją klient, a serwer nie dubluje tej logiki.
+  Powiadomienie zostaje na ekranie do zamknięcia, mocniej wibruje i ma przyciski „Otwórz” i „Za 30 min”
+  (iOS może ich nie pokazać — stuknięcie i tak otwiera aplikację). Drzemka wysyła je jeszcze raz po 30 min —
+  tylko raz, tylko jeśli dalej coś zostało i tylko tego samego dnia (po północy już nie).
+- **Odznaka na ikonie** zainstalowanej aplikacji: liczba nieodhaczonych zadań na dziś — z aplikacji przy każdej zmianie,
+  a przy zamkniętej aplikacji z danych przypomnienia (service worker).
+- **Pasek „koniec dnia”** na ekranie Dziś: od 20:00, gdy zostały zadania — „Zostało N zadań · X h do końca dnia”,
+  odświeżany co minutę, pulsuje (bez ruchu przy ograniczonych animacjach).
 - Serwer sprawdza co 5 minut; okno wysyłki 20 min, po godzinie startu najwyżej 10 min; każde przypomnienie
   wysyłane raz. W trybie urlopu — cisza. Powiadomienie testowe w panelu przypomnień.
+
+Technicznie: subskrypcja ma pola `lastCall` i `snoozeUntil` (drzemka zapisywana przez `POST /api/push?action=snooze` z adresem
+subskrypcji urządzenia). „Ile zostało” liczy `questsLeft` z `src/lib/schedule.js` — ta sama funkcja na serwerze i w aplikacji.
 
 ## 16. Ustawienia, dane i prywatność
 
@@ -514,7 +527,8 @@ Gdy nawyk trzyma się od ~2 tygodni, panel „Podnieś poprzeczkę” (ekran Dzi
   (zmiana nazwy, stare zapisy i kopie bez pola, scalanie); `npm run check:bosses` — test strażnika tygodnia (granice wytrzymałości,
   słabość, urlop i brak planu, ten sam boss w różnych strefach czasowych); `npm run check:luck` — test elementów losowych
   (szansa i rzadkość reliktów, przepowiednia bez zmian EXP wstecz, zlecenie dnia, obrażenia bossa = EXP, te same wyniki w różnych strefach
-  czasowych); `npm run docs` — przebudowa tej dokumentacji.
+  czasowych); `npm run check:reminders` — test przypomnień (ostatnia szansa raz dziennie i tylko gdy coś zostało, drzemka,
+  starsze subskrypcje, urlop); `npm run docs` — przebudowa tej dokumentacji.
 - Hook `pre-commit` (`.githooks/`, włączany automatycznie przez `npm install`) przebudowuje dokumentację i dołącza ją do commita.
 - Teksty pisze się w miejscu użycia jako `t('po polsku', 'in English')`; zmiana języka przeładowuje stronę.
 - Commity po polsku; push na `main` = wdrożenie na produkcję.

@@ -69,6 +69,38 @@ async function fetchAndCache(req) {
 
 // --- przypomnienia ------------------------------------------------------------
 
+// odznaka na ikonie aplikacji: liczba nieodhaczonych zadań na dziś (left z serwera), gdy aplikacja jest zamknięta
+function setBadge(left) {
+  if (typeof left !== 'number' || !('setAppBadge' in self.navigator)) return Promise.resolve()
+  return (left > 0 ? self.navigator.setAppBadge(left) : self.navigator.clearAppBadge()).catch(() => {})
+}
+
+// „ostatnia szansa” (kind: 'last') ma zostać na ekranie i być wyraźna; reszta jak zwykłe przypomnienie.
+// Przyciski akcji nie wszędzie są widoczne (np. iOS) — samo stuknięcie i tak otwiera aplikację.
+function notificationOptions(data) {
+  const base = {
+    body: data.body ?? '',
+    tag: data.tag,
+    icon: '/icons/icon-192.png',
+    badge: '/icons/badge-96.png',
+    data: { url: data.url ?? '/', kind: data.kind ?? null },
+    vibrate: [80, 40, 120],
+  }
+  if (data.kind !== 'last') return base
+  const en = data.lang === 'en'
+  return {
+    ...base,
+    requireInteraction: true,
+    renotify: Boolean(data.tag),
+    vibrate: [200, 100, 200, 100, 400],
+    actions: [
+      { action: 'open', title: en ? 'Open' : 'Otwórz' },
+      // po drzemce drugi raz już nie proponujemy
+      ...(data.snoozed ? [] : [{ action: 'snooze', title: en ? 'In 30 min' : 'Za 30 min' }]),
+    ],
+  }
+}
+
 self.addEventListener('push', (event) => {
   let data = {}
   try {
@@ -76,20 +108,26 @@ self.addEventListener('push', (event) => {
   } catch {
     data = { body: event.data?.text() }
   }
-  event.waitUntil(
-    self.registration.showNotification(data.title ?? 'Umbra', {
-      body: data.body ?? '',
-      tag: data.tag,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/badge-96.png',
-      data: { url: data.url ?? '/' },
-      vibrate: [80, 40, 120],
-    }),
-  )
+  event.waitUntil(Promise.all([self.registration.showNotification(data.title ?? 'Umbra', notificationOptions(data)), setBadge(data.left)]))
 })
+
+// drzemka: serwer wyśle „ostatnią szansę” jeszcze raz za 30 min (jeśli dalej coś zostanie i przed północą)
+async function snooze() {
+  const sub = await self.registration.pushManager.getSubscription()
+  if (!sub) return
+  await fetch('/api/push?action=snooze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ endpoint: sub.endpoint, snoozeMinutes: 30 }),
+  }).catch(() => {})
+}
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
+  if (event.action === 'snooze') {
+    event.waitUntil(snooze())
+    return
+  }
   const target = event.notification.data?.url ?? '/'
   event.waitUntil(
     (async () => {

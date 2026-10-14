@@ -7,6 +7,7 @@ import RaiseBar from '../components/RaiseBar'
 import WeeklyBoss from '../components/WeeklyBoss'
 import Prophecy from '../components/Prophecy'
 import CommissionCard from '../components/CommissionCard'
+import DayEndBanner from '../components/DayEndBanner'
 import { MiniRune, Panel, ShieldIcon } from '../components/ui'
 import { formatDay, partOfDay, shiftKey } from '../lib/game'
 import { byTime, dayStats, perfectDayStreak, questStreaks, weekCount } from '../lib/stats'
@@ -74,6 +75,7 @@ export default function TodayView({ game, onEdit, onOpenPlan, onOpenQuiz }) {
   return (
     <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-12">
       <section aria-labelledby="today-heading" className="space-y-6">
+        <DayEndBanner state={state} today={today} />
         <div className="flex flex-wrap items-end gap-x-4 gap-y-1 sm:pl-1">
           <h2 id="today-heading" className="font-display text-xl font-black tracking-[0.2em] text-stone-100 uppercase">
             {t('Plan na dziś', "Today's Plan")}

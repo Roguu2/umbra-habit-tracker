@@ -27,6 +27,17 @@ export function isScheduledOn(quest, key) {
 export const pauseOn = (state, key) => (state.pauses ?? []).find((p) => key >= p.from && (!p.to || key <= p.to)) ?? null
 export const isPaused = (state, key) => pauseOn(state, key) !== null
 
+// od tej godziny (czasu lokalnego) pasek na ekranie Dziś przypomina, że dzień się kończy (components/DayEndBanner.jsx)
+export const DAY_END_FROM_HOUR = 20
+
+// zadania zaplanowane na dany dzień, jeszcze nieodhaczone (w urlopie — żadne); minimum dnia liczy się jako odhaczone.
+// Wspólne dla przypomnień na serwerze, odznaki na ikonie i paska „koniec dnia” w aplikacji.
+export function questsLeft(state, key) {
+  if (isPaused(state, key)) return []
+  const done = new Set(state.history?.[key] ?? [])
+  return (state.quests ?? []).filter((q) => isScheduledOn(q, key) && !done.has(q.id))
+}
+
 // klucze dni tygodnia (pn–nd), do którego należy dany dzień
 export function weekKeys(key) {
   const d = toDate(key)

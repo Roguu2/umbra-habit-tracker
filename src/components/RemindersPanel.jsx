@@ -182,6 +182,28 @@ function PanelBody({ push, hasCode, onClose }) {
                   />
                 </div>
 
+                <div>
+                  <p className="mb-2 text-[11px] text-white/45">{t('Ostatnia szansa, gdy coś zostało', 'Last call, if something is left')}</p>
+                  <Segmented
+                    id="push-last-call"
+                    size="sm"
+                    value={push.prefs.lastCall}
+                    onChange={(lastCall) => push.update({ lastCall })}
+                    options={[
+                      { value: 'off', label: t('Wył.', 'Off') },
+                      { value: '22:00', label: '22:00' },
+                      { value: '23:00', label: '23:00' },
+                      { value: '23:30', label: '23:30' },
+                    ]}
+                  />
+                  <p className="mt-2 text-[11px] leading-relaxed text-white/35">
+                    {t(
+                      'Zostaje na ekranie, dopóki jej nie zamkniesz; „Za 30 min” przypomni jeszcze raz. Na iPhonie działa tylko w zainstalowanej aplikacji — dodaj też Umbrę do wyjątków trybu Skupienie / Nie przeszkadzać.',
+                      'Stays on screen until you dismiss it; “In 30 min” reminds you once more. On iPhone it only works in the installed app — also add Umbra to the exceptions of Focus / Do Not Disturb.',
+                    )}
+                  </p>
+                </div>
+
                 <Hint>
                   {t(
                     'Przychodzą także przy zamkniętej stronie. Dotyczą zadań z ustawioną godziną; odhaczone wcześniej zadania nie są przypominane.',

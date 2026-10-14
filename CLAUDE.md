@@ -18,6 +18,8 @@ Pełny opis aplikacji i wszystkich jej zasad: `DOKUMENTACJA.md` (generowana, nie
   ten sam boss w różnych strefach czasowych); uruchom po zmianach w `src/lib/bosses.js` albo w liczeniu EXP.
 - `npm run check:luck` — test elementów losowych (relikty, przepowiednia, zlecenie dnia, spójność obrażeń bossa z EXP, te same wyniki
   w różnych strefach czasowych); uruchom po zmianach w `relics.js`, `prophecy.js`, `commission.js`, `random.js` albo w liczeniu EXP.
+- `npm run check:reminders` — test przypomnień push (ostatnia szansa, drzemka, wieczorne, starsze subskrypcje); uruchom po zmianach
+  w `netlify/push-handler.mjs` albo w `questsLeft` (`src/lib/schedule.js`).
 - `npm run docs` — przebudowa dokumentacji bez commita.
 
 ## Zasady

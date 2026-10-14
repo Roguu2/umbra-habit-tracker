@@ -11,6 +11,7 @@
     "check:habits": "node scripts/check-habits.mjs",
     "check:bosses": "node scripts/check-bosses.mjs",
     "check:luck": "node scripts/check-luck.mjs",
+    "check:reminders": "node scripts/check-reminders.mjs",
     "docs": "node scripts/build-docs.mjs",
     "prepare": "node scripts/setup-hooks.mjs"
   },

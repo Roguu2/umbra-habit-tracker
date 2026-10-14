@@ -36,6 +36,7 @@ const prophecy = await lib('prophecy')
 const relics = await lib('relics')
 const commission = await lib('commission')
 const push = await import(new URL('netlify/push-handler.mjs', root))
+const { DAY_END_FROM_HOUR } = await import(new URL('src/lib/schedule.js', root))
 const pkg = JSON.parse(readFileSync(new URL('package.json', root), 'utf8'))
 
 // --- pomocnicze -------------------------------------------------------------------------
@@ -222,6 +223,10 @@ const VALUES = {
   reminderLeads,
   reminderEvenings,
   reminderWindow: push.WINDOW_MIN,
+  lastCalls: push.LAST_CALLS.map((v) => (v === 'off' ? 'wył.' : v)).join(', '),
+  defaultLastCall: push.DEFAULT_LAST_CALL,
+  snoozeMinutes: push.SNOOZE_MINUTES,
+  dayEndHour: DAY_END_FROM_HOUR,
 }
 
 const template = readFileSync(new URL('scripts/docs/template.md', root), 'utf8')
